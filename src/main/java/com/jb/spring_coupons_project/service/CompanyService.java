@@ -108,18 +108,6 @@ public class CompanyService extends ClientService {
 
     //DELETE
 
-/*
-    public void deleteCoupon(int coupon_id) throws ExistsException, TokenException {
-        if (couponRepository.getOneCompanyCoupon(this.company_id, coupon_id).isEmpty()) {
-            throw new ExistsException("Coupon not exists.");
-        }
-        couponRepository.getOneCompanyCoupon(this.company_id, coupon_id);
-        couponRepository.deleteById(coupon_id);
-        System.out.println("Coupon deleted.");
-    }
-
- */
-
 
     @Transactional
     public void deleteCoupon(int coupon_id) throws ExistsException, TokenException {

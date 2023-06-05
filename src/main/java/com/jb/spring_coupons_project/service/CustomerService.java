@@ -36,26 +36,6 @@ public class CustomerService extends ClientService {
     }
 
 
-//    public void purchaseCoupon(int coupon_id) throws CouponException, ExistsException, TokenException, DataIntegrityViolationException, SQLException {
-//        if (!couponRepository.existsById(coupon_id)) {
-//            throw new ExistsException("Coupon not exists.");
-//        }
-//        Coupon coupon = couponRepository.findById(coupon_id).get();
-//        if (coupon.getAmount() == 0) {
-//            throw new CouponException("This coupon is out of stock.");
-//        }
-//        try {
-//            if (couponRepository.checkCustomerSameCoupon(this.customer_id, coupon_id).size() == 0) {
-//                couponRepository.addPurchasedCoupon(this.customer_id, coupon_id);
-//                coupon.setAmount(coupon.getAmount() - 1);
-//                couponRepository.save(coupon); //To save after the new amount
-//                System.out.println("Coupon " + coupon.getTitle() + " purchased.");
-//            }
-//        } catch (Exception SQLException) {
-//            throw new CouponException("You already have this coupon You may not buy more than 1.  \n" + SQLException.getMessage());
-//        }
-//    }
-
 
 
     public void purchaseCoupon(int coupon_id) throws CouponException, ExistsException, TokenException {

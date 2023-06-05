@@ -97,17 +97,6 @@ public class AdminService extends ClientService {
 
 
     //DELETE
-    /*
-    public void deleteCompany(int id) throws ExistsException, TokenException {
-        if (companyRepository.existsById(id)) {
-            companyRepository.deleteById(id);
-            System.out.println("Company deleted");
-        } else {
-            throw new ExistsException("Company not exists");
-        }
-    }
-    */
-
     public void deleteCompany(int id) throws ExistsException, TokenException, CompanyDeletionException {
         if (companyRepository.existsById(id)) {
             Company company = companyRepository.findById(id).orElse(null);
