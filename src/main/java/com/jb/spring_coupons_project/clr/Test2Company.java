@@ -34,7 +34,12 @@ public class Test2Company implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        Company company = companyRepository.getById(3);
+        Optional<Company> companyOpt = companyRepository.findById(3);
+        if (!companyOpt.isPresent()) {
+            System.out.println("\nCompany not found\n");
+            return;
+        }
+        Company company = companyOpt.get();
         companyService.login(company.getEmail(), company.getPassword());
         System.out.println("-----------------------------------------------------------------------------------------------------------------");
 
@@ -140,22 +145,25 @@ public class Test2Company implements CommandLineRunner {
 
 
 
-
         //UPDATE
-        Coupon coup2 = couponRepository.getById(2);
-        coupon2.setPrice(4_279);
-        couponRepository.save(coupon2);
-        System.out.println("\nUpdate coupon: \n");
-        System.out.println("Coupon " + coup2.getTitle() + " updated");
+        Optional<Coupon> coup2Opt = couponRepository.findById(2);
+        if (coup2Opt.isPresent()) {
+            Coupon coup2 = coup2Opt.get();
+            coup2.setPrice(4_279);
+            couponRepository.save(coup2);
+            System.out.println("\nUpdate coupon: \n");
+            System.out.println("Coupon " + coup2.getTitle() + " updated");
+        } else {
+            System.out.println("\nCoupon not found for update\n");
+        }
         System.out.println("-----------------------------------------------------------------------------------------------------------------");
 
 
 
-
         //DELETE
-        Optional<Coupon> coupo1 = couponRepository.findById(1);
+        Optional<Coupon> coupo1Opt = couponRepository.findById(1);
         System.out.println("\nDelete coupon: \n");
-        if (couponRepository.existsById(1)) {
+        if (coupo1Opt.isPresent()) {
             couponRepository.deleteById(1);
             System.out.println("\nCoupon deleted\n");
         } else {

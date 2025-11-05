@@ -75,8 +75,13 @@ public class Test1Admin implements CommandLineRunner {
         System.out.println("-----------------------------------------------------------------------------------------------------------------");
 
 
-        companyRepository.saveAll(companyList);
-
+        for (Company company : companyList) {
+            if (!companyRepository.existsByEmail(company.getEmail())) {
+                companyRepository.save(company);
+            } else {
+                System.out.println("Company " + company.getName() + " already exists, skipping...");
+            }
+        }
 
 
 
@@ -120,8 +125,13 @@ public class Test1Admin implements CommandLineRunner {
         System.out.println("-----------------------------------------------------------------------------------------------------------------");
 
 
-        customerRepository.saveAll(customerList);
-
+        for (Customer customer : customerList) {
+            if (!customerRepository.existsByEmail(customer.getEmail())) {
+                customerRepository.save(customer);
+            } else {
+                System.out.println("Customer " + customer.getFirst_name() + " already exists, skipping...");
+            }
+        }
 
 
 
@@ -185,13 +195,17 @@ public class Test1Admin implements CommandLineRunner {
 
 
         //UPDATE
-        Customer customer4 = customerRepository.getById(4);
-        customer4.setEmail("shalom@bye.com");
-        customerRepository.save(customer4);
-        System.out.println("\nUpdate coupon: \n");
-        System.out.println("Customer " + customer4.getFirst_name() + " " +customer4.getLast_name() + " updated");
+        Optional<Customer> customer4Opt = customerRepository.findById(4);
+        if (customer4Opt.isPresent()) {
+            Customer customer4 = customer4Opt.get();
+            customer4.setEmail("shalom@bye.com");
+            customerRepository.save(customer4);
+            System.out.println("\nUpdate coupon: \n");
+            System.out.println("Customer " + customer4.getFirst_name() + " " +customer4.getLast_name() + " updated");
+        } else {
+            System.out.println("\nNo customer with id 4\n");
+        }
         System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
 
 
 

@@ -6,7 +6,6 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -19,7 +18,8 @@ import java.util.Set;
 @ToString
 public class Customer {
     @Id //Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customer_seq")
+    @SequenceGenerator(name = "customer_seq", sequenceName = "customer_seq", allocationSize = 1)
     @Column(name = "customer_id")
     private int id;
     @Column(length = 40, nullable = false)
@@ -32,7 +32,10 @@ public class Customer {
     private String password;
 
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "customers")
-    @Fetch(value = FetchMode.JOIN)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(name = "customers_vs_coupons", joinColumns = @JoinColumn(name = "customer_id"),
+            inverseJoinColumns = @JoinColumn(name = "coupon_id"))
+    @ToString.Exclude
+    @JsonIgnore
     private Set<Coupon> coupons;
 }

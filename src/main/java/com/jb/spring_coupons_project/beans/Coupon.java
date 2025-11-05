@@ -6,7 +6,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -19,12 +18,13 @@ import java.util.Set;
 @Table(name = "coupons")
 public class Coupon {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "coupon_seq")
+    @SequenceGenerator(name = "coupon_seq", sequenceName = "coupon_seq", allocationSize = 1)
     @Column(name = "coupon_id")
     private int id;
     private int companyId;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "customers_vs_coupons", joinColumns = @JoinColumn(name = "coupon_id"),
             inverseJoinColumns = @JoinColumn(name = "customer_id"))
     @ToString.Exclude
@@ -49,4 +49,3 @@ public class Coupon {
     private double price;
     private String image;
 }
-
