@@ -11,7 +11,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,6 @@ import java.util.Optional;
 public class CustomerService extends ClientService {
 
     private int customer_id;
-
 
     @Override
     public boolean login(String email, String password) {
@@ -35,14 +33,15 @@ public class CustomerService extends ClientService {
         return false;
     }
 
-
-
-
     public void purchaseCoupon(int coupon_id) throws CouponException, ExistsException, TokenException {
         if (!couponRepository.existsById(coupon_id)) {
             throw new ExistsException("Sorry, coupon not exists.");
         }
         Coupon coupon = couponRepository.findById(coupon_id).get();
+        // Added check: cannot purchase expired coupon
+        if (coupon.isExpired()) {
+            throw new CouponException("This coupon has expired and cannot be purchased.");
+        }
         if (coupon.getAmount() == 0) {
             throw new CouponException("This coupon is out of stock, sorry.");
         }
@@ -55,8 +54,6 @@ public class CustomerService extends ClientService {
         System.out.println("Coupon " + coupon.getTitle() + " purchased.");
     }
 
-
-
     public List<Coupon> getCustomerCoupons() throws ExistsException, TokenException {
         List<Coupon> couponList = couponRepository.findAllCustomerCoupons(this.customer_id);
         if (couponList.isEmpty()) {
@@ -64,7 +61,6 @@ public class CustomerService extends ClientService {
         }
         return couponList;
     }
-
 
     public List<Coupon> getCustomerCouponsByCategory(Category category) throws ExistsException, TokenException {
         List<Coupon> couponList = new ArrayList<>();
@@ -79,7 +75,6 @@ public class CustomerService extends ClientService {
         return couponList;
     }
 
-
     public List<Coupon> getCustomerCouponsByMaxPrice(double maxPrice) throws ExistsException, TokenException {
         List<Coupon> couponList = couponRepository.findAllCustomerCouponsByMaxPrice(this.customer_id, maxPrice);
         if (couponList.isEmpty()) {
@@ -87,7 +82,6 @@ public class CustomerService extends ClientService {
         }
         return couponList;
     }
-
 
     public Customer getCustomerDetails() throws ExistsException, TokenException {
         if (customerRepository.existsById(this.customer_id)) {
@@ -97,4 +91,3 @@ public class CustomerService extends ClientService {
         }
     }
 }
-

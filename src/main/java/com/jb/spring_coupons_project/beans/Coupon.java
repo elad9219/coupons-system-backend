@@ -31,7 +31,6 @@ public class Coupon {
     @JsonIgnore
     private Set<Customer> customers;
 
-
     @Enumerated(EnumType.STRING)
     @Column(length = 25, nullable = false)
     private Category category;
@@ -48,4 +47,8 @@ public class Coupon {
     @Column(nullable = false)
     private double price;
     private String image;
+
+    // Added field to mark expired coupons without deletion
+    @Column(nullable = false)
+    private boolean expired = false;
 }
