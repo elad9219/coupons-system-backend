@@ -1,9 +1,12 @@
 package com.jb.spring_coupons_project.controller;
 
 import com.jb.spring_coupons_project.beans.Category;
+import com.jb.spring_coupons_project.beans.Customer;
+import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
 import com.jb.spring_coupons_project.service.GuestService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,5 +34,13 @@ public class GuestController {
     public ResponseEntity<?> getAllCompanyCouponsByMaxPrice(@PathVariable double maxPrice) throws  ExistsException {
         return ResponseEntity.ok()
                 .body(guestService.getAllCouponsByMaxPrice(maxPrice));
+    }
+
+    // Added endpoint for customer registration
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Customer customer) throws CustomerException {
+        guestService.register(customer);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Customer registered successfully");
     }
 }

@@ -2,8 +2,9 @@ package com.jb.spring_coupons_project.service;
 
 import com.jb.spring_coupons_project.beans.Category;
 import com.jb.spring_coupons_project.beans.Coupon;
+import com.jb.spring_coupons_project.beans.Customer;
+import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
-import com.jb.spring_coupons_project.exception.TokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,15 @@ public class GuestService extends ClientService {
             throw new ExistsException("The company has no coupons exists for this max price.");
         }
         return couponList;
+    }
+
+    // Added register method for guests
+    public void register(Customer customer) throws CustomerException {
+        if (customerRepository.existsByEmail(customer.getEmail())) {
+            throw new CustomerException("Email already exists");
+        }
+        customerRepository.save(customer);
+        System.out.println("New customer registered via GuestService: " + customer.getEmail());
     }
 
     @Override
