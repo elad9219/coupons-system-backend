@@ -1,6 +1,7 @@
 package com.jb.spring_coupons_project.controller;
 
 import com.jb.spring_coupons_project.beans.Category;
+import com.jb.spring_coupons_project.beans.Company;
 import com.jb.spring_coupons_project.beans.Coupon;
 import com.jb.spring_coupons_project.beans.UserType;
 import com.jb.spring_coupons_project.exception.CompanyException;
@@ -22,9 +23,7 @@ import javax.security.auth.login.LoginException;
 public class CompanyController {
 
     private final CompanyService companyService;
-
     private final JWTutil jwtUtil;
-
 
     //CREATE
     @PostMapping("/addCoupon")
@@ -37,8 +36,6 @@ public class CompanyController {
                 .body(coupon.getTitle() + " added");
     }
 
-
-
     //READ
     @GetMapping("/allCoupons")
     public ResponseEntity<?> getAllCoupons(@RequestHeader(name = "Authorization") String token) throws LoginException, TokenException, ExistsException {
@@ -48,7 +45,6 @@ public class CompanyController {
                 .body(companyService.getAllCompanyCoupons());
     }
 
-
     @GetMapping("/getOneCoupon/{id}")
     public ResponseEntity<?> getOneCompanyCoupon(@RequestHeader(name = "Authorization") String token, @PathVariable int id) throws LoginException, TokenException, ExistsException {
         jwtUtil.checkUser(token, UserType.COMPANY);
@@ -56,7 +52,6 @@ public class CompanyController {
                 .header("Authorization", jwtUtil.generateToken(token))
                 .body(companyService.getOneCompanyCoupon(id));
     }
-
 
     @GetMapping("/allCouponsByCategory/{category}")
     public ResponseEntity<?> getAllCompanyCouponsByCategory(@RequestHeader(name = "Authorization") String token, @PathVariable Category category) throws LoginException, TokenException, ExistsException {
@@ -66,7 +61,6 @@ public class CompanyController {
                 .body(companyService.getAllCompanyCouponsByCategory(category));
     }
 
-
     @GetMapping("/allCouponsByMaxPrice/{maxPrice}")
     public ResponseEntity<?> getAllCompanyCouponsByMaxPrice(@RequestHeader(name = "Authorization") String token, @PathVariable double maxPrice) throws LoginException, TokenException, ExistsException {
         jwtUtil.checkUser(token, UserType.COMPANY);
@@ -75,7 +69,6 @@ public class CompanyController {
                 .body(companyService.getAllCompanyCouponsByMaxPrice(maxPrice));
     }
 
-
     @GetMapping("/companyDetails")
     public ResponseEntity<?> getCompanyDetails(@RequestHeader(name = "Authorization") String token) throws ExistsException, TokenException, LoginException {
         jwtUtil.checkUser(token, UserType.COMPANY);
@@ -83,8 +76,6 @@ public class CompanyController {
                 .header("Authorization", jwtUtil.generateToken(token))
                 .body(companyService.getCompanyDetails());
     }
-
-
 
     //UPDATE
     @PutMapping("/updateCoupon")
@@ -97,6 +88,16 @@ public class CompanyController {
                 .body(coupon.getTitle() + " updated.");
     }
 
+    // NEW ENDPOINT FOR COMPANY UPDATE
+    @PutMapping("/updateDetails")
+    @ResponseStatus(code = HttpStatus.ACCEPTED)
+    public ResponseEntity<?> updateDetails(@RequestHeader(name = "Authorization") String token, @RequestBody Company company) throws LoginException, TokenException, CompanyException, ExistsException {
+        jwtUtil.checkUser(token, UserType.COMPANY);
+        companyService.updateCompanyDetails(company);
+        return ResponseEntity.ok()
+                .header("Authorization", jwtUtil.generateToken(token))
+                .body("Company details updated successfully.");
+    }
 
     //DELETE
     @DeleteMapping("/deleteCoupon/{id}")

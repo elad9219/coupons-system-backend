@@ -85,27 +85,35 @@ public class CompanyService extends ClientService {
 
     //UPDATE
     public void updateCoupon(Coupon coupon) throws CouponException, ExistsException, TokenException {
-        // Fix: Fetch the existing coupon to verify existence and ownership
         Optional<Coupon> existingCouponOpt = couponRepository.findById(coupon.getId());
-
         if (existingCouponOpt.isEmpty()) {
             throw new ExistsException("Coupon not exists.");
         }
-
         Coupon existingCoupon = existingCouponOpt.get();
 
-        // Fix logic: Allow updating if the coupon belongs to the company, even if title changes.
-        // We use the companyId from the DB record to verify ownership properly.
         if (existingCoupon.getCompanyId() != this.company_id && this.company_id != 0) {
-            // Note: 'this.company_id != 0' is a safeguard if service state was lost on restart
             throw new CouponException("You cannot update a coupon that does not belong to your company.");
         }
 
-        // Ensure the companyId is preserved correctly
         coupon.setCompanyId(existingCoupon.getCompanyId());
-
         couponRepository.save(coupon);
         System.out.println("Coupon updated.");
+    }
+
+    // NEW METHOD FOR UPDATING COMPANY DETAILS
+    public void updateCompanyDetails(Company company) throws CompanyException, ExistsException {
+        Company existing = companyRepository.findById(this.company_id)
+                .orElseThrow(() -> new ExistsException("Company not found"));
+
+        if (!existing.getEmail().equals(company.getEmail())) {
+            if (companyRepository.existsByEmail(company.getEmail())) {
+                throw new CompanyException("Email already exists");
+            }
+            existing.setEmail(company.getEmail());
+        }
+        existing.setPassword(company.getPassword());
+        companyRepository.saveAndFlush(existing);
+        System.out.println("Company details updated.");
     }
 
     //DELETE
@@ -114,8 +122,8 @@ public class CompanyService extends ClientService {
         if (couponRepository.getOneCompanyCoupon(this.company_id, coupon_id).isEmpty()) {
             throw new ExistsException("Coupon not exists.");
         }
-        customerRepository.deleteCouponsByCouponId(coupon_id); // delete all rows in customers_vs_coupons table that reference the coupon
-        couponRepository.deleteById(coupon_id); // delete the coupon itself
+        customerRepository.deleteCouponsByCouponId(coupon_id);
+        couponRepository.deleteById(coupon_id);
         System.out.println("Coupon deleted.");
     }
 }
