@@ -4,6 +4,7 @@ import com.jb.spring_coupons_project.beans.Category;
 import com.jb.spring_coupons_project.beans.Coupon;
 import com.jb.spring_coupons_project.beans.Customer;
 import com.jb.spring_coupons_project.exception.CouponException;
+import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
 import com.jb.spring_coupons_project.exception.TokenException;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CustomerService extends ClientService {
-
     private int customer_id;
 
     @Override
@@ -38,7 +38,7 @@ public class CustomerService extends ClientService {
             throw new ExistsException("Sorry, coupon not exists.");
         }
         Coupon coupon = couponRepository.findById(coupon_id).get();
-        // Added check: cannot purchase expired coupon
+
         if (coupon.isExpired()) {
             throw new CouponException("This coupon has expired and cannot be purchased.");
         }
@@ -50,7 +50,7 @@ public class CustomerService extends ClientService {
         }
         couponRepository.addPurchasedCoupon(this.customer_id, coupon_id);
         coupon.setAmount(coupon.getAmount() - 1);
-        couponRepository.save(coupon); //To save after the new amount
+        couponRepository.save(coupon);
         System.out.println("Coupon " + coupon.getTitle() + " purchased.");
     }
 
@@ -89,5 +89,25 @@ public class CustomerService extends ClientService {
         } else {
             throw new ExistsException("Customer not exists.");
         }
+    }
+
+    // NEW METHOD: Allow customer to update their own details
+    public void updateCustomerDetails(Customer customer) throws CustomerException, ExistsException {
+        Customer existing = customerRepository.findById(this.customer_id)
+                .orElseThrow(() -> new ExistsException("Customer not found"));
+
+        if (!existing.getEmail().equals(customer.getEmail())) {
+            if (customerRepository.existsByEmail(customer.getEmail())) {
+                throw new CustomerException("Email already exists");
+            }
+            existing.setEmail(customer.getEmail());
+        }
+
+        existing.setFirst_name(customer.getFirst_name());
+        existing.setLast_name(customer.getLast_name());
+        existing.setPassword(customer.getPassword());
+
+        customerRepository.saveAndFlush(existing);
+        System.out.println("Customer details updated.");
     }
 }
