@@ -1,3 +1,4 @@
+/*
 package com.jb.spring_coupons_project.clr;
 
 import com.jb.spring_coupons_project.beans.Category;
@@ -131,3 +132,5 @@ public class Test2Company implements CommandLineRunner {
         System.out.println("=============================================================================================================\n");
     }
 }
+
+ */

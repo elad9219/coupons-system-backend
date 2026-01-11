@@ -1,3 +1,4 @@
+/*
 package com.jb.spring_coupons_project.clr;
 
 import com.jb.spring_coupons_project.beans.Category;
@@ -17,9 +18,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Test3Customer implements CommandLineRunner {
 
-    /**
-     * Exists & not exists tests (to see exceptions)
-     */
 
     public final CustomerService customerService;
     public final CouponRepository couponRepository;
@@ -74,3 +72,5 @@ public class Test3Customer implements CommandLineRunner {
         System.out.println("-----------------------------------------------------------------------------------------------------------------");
     }
 }
+
+ */

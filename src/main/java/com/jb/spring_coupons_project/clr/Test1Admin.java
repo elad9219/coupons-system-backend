@@ -1,231 +1,94 @@
 package com.jb.spring_coupons_project.clr;
 
+import com.jb.spring_coupons_project.beans.Category;
 import com.jb.spring_coupons_project.beans.Company;
+import com.jb.spring_coupons_project.beans.Coupon;
 import com.jb.spring_coupons_project.beans.Customer;
 import com.jb.spring_coupons_project.repository.CompanyRepository;
+import com.jb.spring_coupons_project.repository.CouponRepository;
 import com.jb.spring_coupons_project.repository.CustomerRepository;
-import com.jb.spring_coupons_project.service.AdminService;
-import com.jb.spring_coupons_project.util.TablePrinter;
+import com.jb.spring_coupons_project.util.TablePrinter; // Make sure this import exists
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.Arrays;
 
 @Component
 @Order(1)
 @RequiredArgsConstructor
 public class Test1Admin implements CommandLineRunner {
 
-    /**
-     * Exists & not exists tests (to see exceptions)
-     */
-
-    private final AdminService adminService;
     private final CompanyRepository companyRepository;
     private final CustomerRepository customerRepository;
+    private final CouponRepository couponRepository;
 
     @Override
     public void run(String... args) throws Exception {
-
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-        if (adminService.login("admin@admin.com", "admin")) {
-            System.out.println("\n\nAdmin connected\n\n");
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        //CREATE
-        Company mega = Company.builder()
-                .name("mega")
-                .email("mega@mega.com")
-                .password("mega8203")
-                .build();
-
-        Company sano = Company.builder()
-                .name("sano")
-                .email("sano@sano.com")
-                .password("sano9494")
-                .build();
-
-        Company sony = Company.builder()
-                .name("sony")
-                .email("sony@sony.com")
-                .password("123")
-                .build();
-
-        Company issta = Company.builder()
-                .name("issta")
-                .email("issta@travel.com")
-                .password("isstafly80")
-                .build();
-
-        Company isrotel = Company.builder()
-                .name("isrotel")
-                .email("isrotel@isrotel.com")
-                .password("isrotelhotels")
-                .build();
-
-
-        List<Company> companyList = List.of(mega, sano, sony, issta, isrotel);
-        System.out.println("saving companies");
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-        for (Company company : companyList) {
-            if (!companyRepository.existsByEmail(company.getEmail())) {
-                companyRepository.save(company);
-            } else {
-                System.out.println("Company " + company.getName() + " already exists, skipping...");
-            }
+        if (companyRepository.count() > 0) {
+            System.out.println(">> Data already exists. Skipping Initialization.");
+            printData(); // Print existing data anyway
+            return;
         }
 
+        System.out.println(">> Initializing System Data (Hebrew)...");
 
+        // 1. Create Companies
+        Company sony = Company.builder().name("Sony").email("sony@sony.com").password("1234").build();
+        Company cocaCola = Company.builder().name("Coca Cola").email("coke@cola.com").password("1234").build();
+        Company elAl = Company.builder().name("El-Al").email("elal@fly.com").password("1234").build();
+        Company superPharm = Company.builder().name("Super Pharm").email("super@pharm.com").password("1234").build();
 
-        Customer john = Customer.builder()
-                .first_name("John")
-                .last_name("Jackson")
-                .email("john289@gmail.com")
-                .password("john777")
-                .build();
+        companyRepository.saveAll(Arrays.asList(sony, cocaCola, elAl, superPharm));
+        System.out.println(">> Companies created.");
 
-        Customer dan = Customer.builder()
-                .first_name("Dan")
-                .last_name("Kan")
-                .email("dankan72@gmail.com")
-                .password("123")
-                .build();
+        // 2. Create Customers
+        Customer kobi = Customer.builder().first_name("Kobi").last_name("Shasha").email("kobi@gmail.com").password("1234").build();
+        Customer dana = Customer.builder().first_name("Dana").last_name("Cohen").email("dana@gmail.com").password("1234").build();
 
-        Customer mor = Customer.builder()
-                .first_name("Mor")
-                .last_name("Bon")
-                .email("mor228@hotmail.com")
-                .password("mormor")
-                .build();
+        customerRepository.saveAll(Arrays.asList(kobi, dana));
+        System.out.println(">> Customers created.");
 
-        Customer jacob = Customer.builder()
-                .first_name("Jacob")
-                .last_name("Kazenelenburgen")
-                .email("jacobavinu1892@gmail.com")
-                .password("jack29002!%#")
-                .build();
+        // 3. Create Coupons
+        Coupon ps5 = Coupon.builder().companyId(sony.getId()).category(Category.ELECTRICITY).title("פלייסטיישן 5").description("קונסולה + שלט נוסף מתנה").start_date(LocalDate.now().minusDays(1)).end_date(LocalDate.now().plusMonths(3)).amount(50).price(2200).image("https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?q=80&w=2070&auto=format&fit=crop").build();
+        Coupon tv = Coupon.builder().companyId(sony.getId()).category(Category.ELECTRICITY).title("טלוויזיה 65 אינץ").description("מסך OLED חכם ומתקדם").start_date(LocalDate.now()).end_date(LocalDate.now().plusMonths(6)).amount(20).price(4500).image("https://images.unsplash.com/photo-1593784991095-a205069470b6?q=80&w=2070&auto=format&fit=crop").build();
+        Coupon familyMeal = Coupon.builder().companyId(cocaCola.getId()).category(Category.FOOD).title("ארוחה משפחתית").description("2 פיצות + בקבוק קולה").start_date(LocalDate.now().minusDays(5)).end_date(LocalDate.now().plusWeeks(2)).amount(100).price(89.90).image("https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop").build();
+        Coupon flight = Coupon.builder().companyId(elAl.getId()).category(Category.VACATION).title("טיסה לניו יורק").description("טיסה ישירה כולל מזוודה").start_date(LocalDate.now()).end_date(LocalDate.now().plusMonths(1)).amount(10).price(2800).image("https://images.unsplash.com/photo-1500835556837-99ac94a94552?q=80&w=1974&auto=format&fit=crop").build();
+        Coupon perfume = Coupon.builder().companyId(superPharm.getId()).category(Category.OTHER).title("בושם שאנל").description("בושם לאישה 100 מ\"ל").start_date(LocalDate.now()).end_date(LocalDate.now().plusWeeks(4)).amount(15).price(450).image("https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1904&auto=format&fit=crop").build();
 
-        Customer sami = Customer.builder()
-                .first_name("Sami")
-                .last_name("Fireman")
-                .email("sami372@gmail.com")
-                .password("samiandsusu24392")
-                .build();
+        // Expired Coupons
+        Coupon expiredHotel = Coupon.builder().companyId(elAl.getId()).category(Category.HOTELS).title("סופ\"ש באילת").description("חופשה במלון יוקרה").start_date(LocalDate.now().minusMonths(2)).end_date(LocalDate.now().minusDays(1)).amount(0).price(1200).image("https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=2049&auto=format&fit=crop").build();
+        Coupon expiredBowling = Coupon.builder().companyId(cocaCola.getId()).category(Category.BOWLING).title("כרטיס לבאולינג").description("משחק ליחיד + נעליים").start_date(LocalDate.now().minusMonths(1)).end_date(LocalDate.now().minusDays(5)).amount(5).price(20).image("https://images.unsplash.com/photo-1538334468846-993c44db67f1?q=80&w=2070&auto=format&fit=crop").build();
 
-        List<Customer> customerList = List.of(john, dan, mor, jacob, sami);
-        System.out.println("saving customers");
+        couponRepository.saveAll(Arrays.asList(ps5, tv, familyMeal, flight, perfume, expiredHotel, expiredBowling));
+
+        try { couponRepository.markExpiredCoupons(); } catch (Exception e) {}
+
+        // Seeding Purchase
+        couponRepository.addPurchasedCoupon(kobi.getId(), ps5.getId());
+        ps5.setAmount(ps5.getAmount() - 1);
+        couponRepository.save(ps5);
+
+        System.out.println(">> DATA INITIALIZATION COMPLETE");
+
+        printData();
+    }
+
+    private void printData() {
+        System.out.println("\n\n-----------------------------------------------------------------------------------------------------------------");
+        System.out.println("   CURRENT DATABASE STATE");
         System.out.println("-----------------------------------------------------------------------------------------------------------------");
 
+        System.out.println("\n>>> COMPANIES LIST:");
+        TablePrinter.print(companyRepository.findAll());
 
-        for (Customer customer : customerList) {
-            if (!customerRepository.existsByEmail(customer.getEmail())) {
-                customerRepository.save(customer);
-            } else {
-                System.out.println("Customer " + customer.getFirst_name() + " already exists, skipping...");
-            }
-        }
+        System.out.println("\n>>> CUSTOMERS LIST:");
+        TablePrinter.print(customerRepository.findAll());
 
-
-
-        //READ
-        System.out.println();
-        List<Customer> customers = customerRepository.findAll();
-        System.out.println("\nFind all customers: \n");
-        TablePrinter.print(customers);
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-        List<Company> companies = companyRepository.findAll();
-        System.out.println("\nFind all companies: \n");
-        TablePrinter.print(companies);
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        Optional<Customer> customer3 = (customerRepository.findById(3));
-        if (customer3.isPresent()) {
-            System.out.println("\nFind customer by id: \n");
-            TablePrinter.print(customer3.get());
-        } else {
-            System.out.println("\nCustomer not found\n");
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        Optional<Customer> customer12 = (customerRepository.findById(12));
-        if (customer12.isPresent()) {
-            System.out.println("\nFind customer by id: \n");
-            TablePrinter.print(customer12.get());
-        } else {
-            System.out.println("\nCustomer not found\n");
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        Optional<Company> company2 = companyRepository.findById(2);
-        if (company2.isPresent()) {
-            System.out.println("\nFind company by id: \n");
-            TablePrinter.print(company2.get());
-        } else {
-            System.out.println("\nCompany not found\n");
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        Optional<Company> company7 = companyRepository.findById(7);
-        if (company7.isPresent()) {
-            System.out.println("\nFind company by id: \n");
-            TablePrinter.print(company7.get());
-        } else {
-            System.out.println("\nCompany not found\n");
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        //UPDATE
-        Optional<Customer> customer4Opt = customerRepository.findById(4);
-        if (customer4Opt.isPresent()) {
-            Customer customer4 = customer4Opt.get();
-            customer4.setEmail("shalom@bye.com");
-            customerRepository.save(customer4);
-            System.out.println("\nUpdate coupon: \n");
-            System.out.println("Customer " + customer4.getFirst_name() + " " +customer4.getLast_name() + " updated");
-        } else {
-            System.out.println("\nNo customer with id 4\n");
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        //DELETE
-        Optional<Customer> customer5 = customerRepository.findById(5);
-        System.out.println("\nDelete coupon: \n");
-        if (customerRepository.existsById(5)) {
-            customerRepository.deleteById(5);
-            System.out.println("\nCustomer deleted\n");
-        } else {
-            System.out.println("\nCustomer not found\n");
-        }
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
-
-
-
-        System.out.println("\nGet all companies and customers again: \n");
-        TablePrinter.print(adminService.getAllCompanies());
-        System.out.println();
-        TablePrinter.print(adminService.getAllCustomers());
-        System.out.println("-----------------------------------------------------------------------------------------------------------------");
+        System.out.println("\n>>> COUPONS LIST:");
+        TablePrinter.print(couponRepository.findAll());
+        System.out.println("-----------------------------------------------------------------------------------------------------------------\n\n");
     }
 }
