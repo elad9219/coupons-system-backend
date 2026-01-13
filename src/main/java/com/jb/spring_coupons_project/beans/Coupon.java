@@ -34,18 +34,28 @@ public class Coupon {
     @Enumerated(EnumType.STRING)
     @Column(length = 25, nullable = false)
     private Category category;
+
     @Column(length = 25, nullable = false)
     private String title;
-    @Column(length = 40, nullable = false)
+
+    // Fixed: Increased length to 1024
+    @Column(length = 1024, nullable = false)
     private String description;
+
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate start_date;
+
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate end_date;
+
     @Column(nullable = false)
     private int amount;
+
     @Column(nullable = false)
     private double price;
+
+    // Fixed: Increased length to 1024
+    @Column(length = 1024)
     private String image;
 
     // Added field to mark expired coupons without deletion
