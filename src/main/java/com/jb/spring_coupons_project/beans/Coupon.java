@@ -24,7 +24,8 @@ public class Coupon {
     private int id;
     private int companyId;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    // FIX: Removed CascadeType.ALL (specifically REMOVE) to prevent deleting customers when a coupon is deleted
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinTable(name = "customers_vs_coupons", joinColumns = @JoinColumn(name = "coupon_id"),
             inverseJoinColumns = @JoinColumn(name = "customer_id"))
     @ToString.Exclude
@@ -38,7 +39,6 @@ public class Coupon {
     @Column(length = 25, nullable = false)
     private String title;
 
-    // Fixed: Increased length to 1024
     @Column(length = 1024, nullable = false)
     private String description;
 
@@ -54,11 +54,9 @@ public class Coupon {
     @Column(nullable = false)
     private double price;
 
-    // Fixed: Increased length to 1024
     @Column(length = 1024)
     private String image;
 
-    // Added field to mark expired coupons without deletion
     @Column(nullable = false)
     private boolean expired = false;
 }
