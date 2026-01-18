@@ -87,14 +87,14 @@ public class DataSeeding implements CommandLineRunner {
 
         String[][] electCoupons = {
                 {"PlayStation 5 Slim", "הקונסולה החדשה והדקה, כולל שלט נוסף ומשחק.", "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=80"},
-                {"MacBook Pro M3", "מחשב נייד חזק במיוחד לעבודה וגרפיקה.", "https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80"},
-                {"אייפון 15 פרו", "הסמארטפון המתקדם בעולם עם מצלמת 48MP.", "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80"}, // Fixed link
+                {"MacBook Pro M3", "מחשב נייד חזק במיוחד לעבודה וגרפיקה.", "https://images.unsplash.com/photo-1625242504068-6bcff3a603da?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"},
+                {"אייפון 15 פרו", "הסמארטפון המתקדם בעולם עם מצלמת 48MP.", "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80"},
                 {"אוזניות Sony XM5", "ביטול רעשים אקטיבי וסאונד איכותי.", "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=800&q=80"}
         };
 
         String[][] vacationCoupons = {
                 {"חופשה באילת", "סופ\"ש במלון 5 כוכבים, הכל כלול.", "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80"},
-                {"טיסה לניו יורק", "טיסה ישירה במחיר מיוחד למזמינים מראש.", "https://images.unsplash.com/photo-1496442226666-8d4a0e62e6e9?auto=format&fit=crop&w=800&q=80"}, // NYC Image
+                {"טיסה לניו יורק", "טיסה ישירה במחיר מיוחד למזמינים מראש.", "https://images.unsplash.com/photo-1587019158091-1a103c5dd17f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"},
                 {"צימר בצפון", "לילה בבקתת עץ רומנטית עם ג'קוזי וארוחת בוקר.", "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=800&q=80"}
         };
 
