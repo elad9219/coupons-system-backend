@@ -8,11 +8,9 @@ import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
 import com.jb.spring_coupons_project.exception.TokenException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +31,11 @@ public class CustomerService extends ClientService {
         return false;
     }
 
+    /**
+     * Purchase a coupon and update stock amount.
+     * Transactional ensures the process is atomic to prevent race conditions.
+     */
+    @Transactional
     public void purchaseCoupon(int coupon_id) throws CouponException, ExistsException, TokenException {
         if (!couponRepository.existsById(coupon_id)) {
             throw new ExistsException("Sorry, coupon not exists.");
@@ -42,12 +45,16 @@ public class CustomerService extends ClientService {
         if (coupon.isExpired()) {
             throw new CouponException("This coupon has expired and cannot be purchased.");
         }
-        if (coupon.getAmount() == 0) {
+
+        // Stock check: using <= 0 for extra safety
+        if (coupon.getAmount() <= 0) {
             throw new CouponException("This coupon is out of stock, sorry.");
         }
+
         if (couponRepository.checkCustomerSameCoupon(this.customer_id, coupon_id) > 0) {
             throw new CouponException("You already have this coupon You may not buy more than 1");
         }
+
         couponRepository.addPurchasedCoupon(this.customer_id, coupon_id);
         coupon.setAmount(coupon.getAmount() - 1);
         couponRepository.save(coupon);
@@ -91,7 +98,6 @@ public class CustomerService extends ClientService {
         }
     }
 
-    // NEW METHOD: Allow customer to update their own details
     public void updateCustomerDetails(Customer customer) throws CustomerException, ExistsException {
         Customer existing = customerRepository.findById(this.customer_id)
                 .orElseThrow(() -> new ExistsException("Customer not found"));
