@@ -4,10 +4,10 @@ A comprehensive full-stack web application for managing, selling, and purchasing
 
 ## **Quick Links**
 
-* **Live Demo**: [https://coupons.runmydocker-app.com/](https://www.google.com/search?q=https://coupons.runmydocker-app.com/)  
-* **Swagger API**: [https://coupons.runmydocker-app.com/swagger-ui.html](https://www.google.com/search?q=https://coupons.runmydocker-app.com/swagger-ui.html)  
-* **Backend Repository**: [https://github.com/elad9219/coupons-project](https://www.google.com/search?q=https://github.com/elad9219/coupons-project)  
-* **Frontend Repository**: [https://github.com/elad9219/coupons-project-frontend](https://www.google.com/search?q=https://github.com/elad9219/coupons-project-frontend)
+* **Live Demo**: [https://coupons.runmydocker-app.com/](https://coupons.runmydocker-app.com/) 
+* **Swagger API**: [https://coupons.runmydocker-app.com/swagger-ui.html#/](https://coupons.runmydocker-app.com/swagger-ui.html#/) 
+* **Backend Repository**: [https://github.com/elad9219/coupons-system-backend](https://github.com/elad9219/coupons-system-backend)  
+* **Frontend Repository**: [https://github.com/elad9219/coupons-system-react](https://github.com/elad9219/coupons-system-react)
 
 ## **Table of Contents**
 
@@ -80,19 +80,86 @@ The Coupons System is a Single Page Application (SPA) designed to handle high-lo
 
 ## **Screenshots**
 
+
+
+### **Home Page**
+
+
+
+
+<img width="2512" height="1270" alt="image" src="https://github.com/user-attachments/assets/6d8f561f-6869-4500-80fe-36e66184b5a2" />
+
+
+
+
+
 ### **Login Page**
 
-\<img width="800" alt="Login Page" src="https://www.google.com/search?q=https://via.placeholder.com/800x450%3Ftext%3DLogin%2BPage%2BScreenshot" /\>
 
-### **Admin Dashboard**
 
-\<img width="800" alt="Admin Dashboard" src="https://www.google.com/search?q=https://via.placeholder.com/800x450%3Ftext%3DAdmin%2BDashboard%2BScreenshot" /\>
+<img width="2557" height="1271" alt="image" src="https://github.com/user-attachments/assets/81ab870a-096c-4ffc-aec8-242cff011891" />
 
-### **Coupons Marketplace**
 
-\<img width="800" alt="Marketplace" src="https://www.google.com/search?q=https://via.placeholder.com/800x450%3Ftext%3DMarketplace%2BScreenshot" /\>
 
-*Note: Replace the placeholder links above with actual screenshots of your application.*
+
+
+### **Get All Companies**
+
+
+
+<img width="2553" height="1266" alt="image" src="https://github.com/user-attachments/assets/4ef1f8b6-1288-412d-a003-ba826a6f0f1b" />
+
+
+
+
+
+### **Get a Customer By ID **
+
+
+
+<img width="2545" height="1266" alt="image" src="https://github.com/user-attachments/assets/e4adeb59-0f3c-4619-8d63-6c9c151ec33a" />
+
+
+
+
+
+### **Add a Company**
+
+
+
+<img width="2550" height="1270" alt="image" src="https://github.com/user-attachments/assets/73a88301-a3a6-44a5-b0b5-b931e1441ddb" />
+
+
+
+
+
+### **Create a Coupon**
+
+
+
+
+
+<img width="2554" height="1271" alt="image" src="https://github.com/user-attachments/assets/45cee5c1-ce9e-4850-a4c7-5c280d656525" />
+
+
+
+
+
+
+### **Purchase a Coupon**
+
+
+
+
+<img width="2559" height="1270" alt="image" src="https://github.com/user-attachments/assets/727fe491-e3e0-4b9c-9006-815e4e6d0b9a" />
+
+
+
+
+
+
+
+
 
 ## **Installation**
 
@@ -165,7 +232,7 @@ src/
 
 ## **Contact**
 
-* **Author**: Niv  
-* **GitHub**: [https://github.com/elad9219](https://www.google.com/search?q=https://github.com/elad9219)  
-* **Email**: \[Insert Your Email\]  
-* **LinkedIn**: \[Insert Your LinkedIn\]
+* **Author**: Elad Tennenboim  
+* **GitHub**: [elad9219](https://github.com/elad9219)  
+* **Email**: elad9219@gmail.com  
+* **LinkedIn**: [https://www.linkedin.com/in/elad-tennenboim/](https://www.linkedin.com/in/elad-tennenboim/)
