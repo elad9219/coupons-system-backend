@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/guest")   //http://localhost:8080/guest
+@RequestMapping("/api/guest")   //http://localhost:8080/guest
 @RequiredArgsConstructor
 public class GuestController {
     private final GuestService guestService;

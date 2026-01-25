@@ -19,7 +19,7 @@ import javax.security.auth.login.LoginException;
 import java.sql.SQLException;
 
 @RestController
-@RequestMapping("/customer")   //http://localhost:8080/customer
+@RequestMapping("/api/customer")   //http://localhost:8080/customer
 @RequiredArgsConstructor
 public class CustomerController {
 

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequiredArgsConstructor
 public class LoginController {
@@ -20,14 +20,6 @@ public class LoginController {
     private final LoginService loginService;
     private final JWTutil jwtUtil;
 
-/*/
-    @PostMapping("/login")
-    private ResponseEntity<?> login(@RequestBody UserDetails userDetails) throws LoginException {
-        String login = loginService.login(userDetails.getEmail(), userDetails.getPassword(), userDetails.getUserType()).toString();
-        return new ResponseEntity<>(jwtUtil.generateToken(userDetails), HttpStatus.OK);
-    }
-
- */
 
     @PostMapping("/login")
     private ResponseEntity<?> login(@RequestBody UserDetails userDetails) throws LoginException {

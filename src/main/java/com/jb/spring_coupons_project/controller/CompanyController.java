@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.auth.login.LoginException;
 
 @RestController
-@RequestMapping("/company")   //http://localhost:8080/company
+@RequestMapping("/api/company")   //http://localhost:8080/company
 @RequiredArgsConstructor
 public class CompanyController {
 

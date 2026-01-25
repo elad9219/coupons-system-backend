@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.auth.login.LoginException;
 
 @RestController
-@RequestMapping("/admin")   //http://localhost:8080/admin
+@RequestMapping("/api/admin")   //http://localhost:8080/admin
 @RequiredArgsConstructor
 public class AdminController {
 
