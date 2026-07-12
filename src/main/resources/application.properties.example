@@ -1,14 +1,14 @@
 # ==========================================
-# DATABASE CONFIGURATION (PostgreSQL - Neon Public)
+# DATABASE CONFIGURATION (PostgreSQL - Neon Public Template)
 # ==========================================
-spring.datasource.url=jdbc:postgresql://ep-tiny-bar-asb2cxpl.c-4.eu-central-1.aws.neon.tech/neondb?sslmode=require
-spring.datasource.username=neondb_owner
-spring.datasource.password=npg_pi4vbgRGm3fc
+spring.datasource.url=jdbc:postgresql://<YOUR_NEON_CLOUD_HOST>/neondb?sslmode=require
+spring.datasource.username=<YOUR_NEON_DB_USERNAME>
+spring.datasource.password=<YOUR_NEON_DB_PASSWORD>
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # JPA & Hibernate Settings
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.hibernate.ddl-auto=update
 spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
 
 # Logging Management
