@@ -6,114 +6,144 @@ import com.jb.spring_coupons_project.beans.Customer;
 import com.jb.spring_coupons_project.exception.CouponException;
 import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
-import com.jb.spring_coupons_project.exception.TokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService extends ClientService {
-    private int customer_id;
 
     @Override
     public boolean login(String email, String password) {
-        Optional<Customer> customer = customerRepository.findByEmailAndPassword(email, password);
-        if (customer.isPresent()) {
-            this.customer_id = customer.get().getId();
-            System.out.println("Customer connected");
-            return true;
-        }
-        return false;
+        return customerRepository
+                .findByEmailAndPassword(email, password)
+                .isPresent();
     }
 
-    /**
-     * Purchase a coupon and update stock amount.
-     * Transactional ensures the process is atomic to prevent race conditions.
-     */
     @Transactional
-    public void purchaseCoupon(int coupon_id) throws CouponException, ExistsException, TokenException {
-        if (!couponRepository.existsById(coupon_id)) {
-            throw new ExistsException("Sorry, coupon not exists.");
-        }
-        Coupon coupon = couponRepository.findById(coupon_id).get();
+    public void purchaseCoupon(int customerId, int couponId)
+            throws CouponException, ExistsException {
 
-        if (coupon.isExpired()) {
-            throw new CouponException("This coupon has expired and cannot be purchased.");
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() ->
+                        new ExistsException("Coupon not exists")
+                );
+
+        if (coupon.isExpired() ||
+                (coupon.getEnd_date() != null &&
+                        coupon.getEnd_date().isBefore(
+                                java.time.LocalDate.now()
+                        ))) {
+            throw new CouponException(
+                    "This coupon has expired and cannot be purchased"
+            );
         }
 
-        // Stock check: using <= 0 for extra safety
         if (coupon.getAmount() <= 0) {
-            throw new CouponException("This coupon is out of stock, sorry.");
+            throw new CouponException(
+                    "This coupon is out of stock"
+            );
         }
 
-        if (couponRepository.checkCustomerSameCoupon(this.customer_id, coupon_id) > 0) {
-            throw new CouponException("You already have this coupon You may not buy more than 1");
+        if (couponRepository.checkCustomerSameCoupon(
+                customerId, couponId) > 0) {
+            throw new CouponException(
+                    "You already own this coupon"
+            );
         }
 
-        couponRepository.addPurchasedCoupon(this.customer_id, coupon_id);
+        couponRepository.addPurchasedCoupon(customerId, couponId);
+
         coupon.setAmount(coupon.getAmount() - 1);
         couponRepository.save(coupon);
-        System.out.println("Coupon " + coupon.getTitle() + " purchased.");
     }
 
-    public List<Coupon> getCustomerCoupons() throws ExistsException, TokenException {
-        List<Coupon> couponList = couponRepository.findAllCustomerCoupons(this.customer_id);
-        if (couponList.isEmpty()) {
-            throw new ExistsException("There are no coupons exist");
+    public List<Coupon> getCustomerCoupons(int customerId)
+            throws ExistsException {
+
+        List<Coupon> coupons = couponRepository
+                .findAllCustomerCoupons(customerId);
+
+        if (coupons.isEmpty()) {
+            throw new ExistsException("No purchased coupons exist");
         }
-        return couponList;
+
+        return coupons;
     }
 
-    public List<Coupon> getCustomerCouponsByCategory(Category category) throws ExistsException, TokenException {
-        List<Coupon> couponList = new ArrayList<>();
-        for (Coupon coupon : getCustomerCoupons()) {
-            if (coupon.getCategory().equals(category)) {
-                couponList.add(coupon);
-            }
+    public List<Coupon> getCustomerCouponsByCategory(
+            int customerId,
+            Category category) throws ExistsException {
+
+        List<Coupon> coupons = getCustomerCoupons(customerId)
+                .stream()
+                .filter(coupon -> coupon.getCategory() == category)
+                .collect(Collectors.toList());
+
+        if (coupons.isEmpty()) {
+            throw new ExistsException(
+                    "No coupons exist in this category"
+            );
         }
-        if (couponList.isEmpty()) {
-            throw new ExistsException("No coupon exists in this category");
-        }
-        return couponList;
+
+        return coupons;
     }
 
-    public List<Coupon> getCustomerCouponsByMaxPrice(double maxPrice) throws ExistsException, TokenException {
-        List<Coupon> couponList = couponRepository.findAllCustomerCouponsByMaxPrice(this.customer_id, maxPrice);
-        if (couponList.isEmpty()) {
-            throw new ExistsException("No coupon exists for this maximum price");
+    public List<Coupon> getCustomerCouponsByMaxPrice(
+            int customerId,
+            double maxPrice) throws ExistsException {
+
+        List<Coupon> coupons = couponRepository
+                .findAllCustomerCouponsByMaxPrice(
+                        customerId, maxPrice
+                );
+
+        if (coupons.isEmpty()) {
+            throw new ExistsException(
+                    "No coupons exist for this maximum price"
+            );
         }
-        return couponList;
+
+        return coupons;
     }
 
-    public Customer getCustomerDetails() throws ExistsException, TokenException {
-        if (customerRepository.existsById(this.customer_id)) {
-            return customerRepository.findById(this.customer_id).get();
-        } else {
-            throw new ExistsException("Customer not exists.");
-        }
+    public Customer getCustomerDetails(int customerId)
+            throws ExistsException {
+
+        return customerRepository.findById(customerId)
+                .orElseThrow(() ->
+                        new ExistsException("Customer not found")
+                );
     }
 
-    public void updateCustomerDetails(Customer customer) throws CustomerException, ExistsException {
-        Customer existing = customerRepository.findById(this.customer_id)
-                .orElseThrow(() -> new ExistsException("Customer not found"));
+    @Transactional
+    public void updateCustomerDetails(
+            int customerId,
+            Customer incoming)
+            throws CustomerException, ExistsException {
 
-        if (!existing.getEmail().equals(customer.getEmail())) {
-            if (customerRepository.existsByEmail(customer.getEmail())) {
+        Customer existing = customerRepository.findById(customerId)
+                .orElseThrow(() ->
+                        new ExistsException("Customer not found")
+                );
+
+        if (!existing.getEmail().equals(incoming.getEmail())) {
+            if (customerRepository.existsByEmail(incoming.getEmail())) {
                 throw new CustomerException("Email already exists");
             }
-            existing.setEmail(customer.getEmail());
+
+            existing.setEmail(incoming.getEmail());
         }
 
-        existing.setFirst_name(customer.getFirst_name());
-        existing.setLast_name(customer.getLast_name());
-        existing.setPassword(customer.getPassword());
+        existing.setFirst_name(incoming.getFirst_name());
+        existing.setLast_name(incoming.getLast_name());
+        existing.setPassword(incoming.getPassword());
 
         customerRepository.saveAndFlush(existing);
-        System.out.println("Customer details updated.");
     }
 }

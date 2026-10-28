@@ -6,7 +6,6 @@ import com.jb.spring_coupons_project.beans.Coupon;
 import com.jb.spring_coupons_project.exception.CompanyException;
 import com.jb.spring_coupons_project.exception.CouponException;
 import com.jb.spring_coupons_project.exception.ExistsException;
-import com.jb.spring_coupons_project.exception.TokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,113 +16,169 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CompanyService extends ClientService {
-    private int company_id;
 
     @Override
     public boolean login(String email, String password) {
-        Optional<Company> company = companyRepository.findByEmailAndPassword(email, password);
-        if (company.isPresent()) {
-            this.company_id = company.get().getId();
-            System.out.println("Company connected");
-            return true;
-        }
-        return false;
+        return companyRepository
+                .findByEmailAndPassword(email, password)
+                .isPresent();
     }
 
-    //CREATE
-    public void addCoupon(Coupon coupon) throws CouponException, CompanyException, ExistsException, TokenException {
-        Company company = getCompanyDetails();
-        if (couponRepository.existsByTitleAndCompanyId(coupon.getTitle(), coupon.getId())) {
+    @Transactional
+    public void addCoupon(int companyId, Coupon coupon)
+            throws CouponException, CompanyException, ExistsException {
+
+        if (!companyRepository.existsById(companyId)) {
+            throw new ExistsException("Company not found");
+        }
+
+        if (couponRepository.existsByTitleAndCompanyId(
+                coupon.getTitle(), companyId)) {
             throw new CouponException("This coupon already exists");
         }
-        coupon.setCompanyId(company_id);
+
+        coupon.setId(0);
+        coupon.setCompanyId(companyId);
+
         couponRepository.save(coupon);
-        company.getCoupons().add(coupon);
-        companyRepository.saveAndFlush(company);
-        System.out.println("Coupon added.");
     }
 
-    //READ
-    public List<Coupon> getOneCompanyCoupon(int coupon_id) throws ExistsException, TokenException {
-        if (couponRepository.getOneCompanyCoupon(this.company_id, coupon_id).isEmpty()) {
+    public List<Coupon> getOneCompanyCoupon(
+            int companyId,
+            int couponId) throws ExistsException {
+
+        List<Coupon> coupons = couponRepository.getOneCompanyCoupon(
+                companyId, couponId
+        );
+
+        if (coupons.isEmpty()) {
             throw new ExistsException("Coupon not exists");
         }
-        return (couponRepository.getOneCompanyCoupon(this.company_id, coupon_id));
+
+        return coupons;
     }
 
-    public List<Coupon> getAllCompanyCoupons() throws ExistsException, TokenException {
-        List<Coupon> couponsList = couponRepository.getAllCompanyCoupons(this.company_id);
-        if (couponsList.isEmpty()) {
+    public List<Coupon> getAllCompanyCoupons(int companyId)
+            throws ExistsException {
+
+        List<Coupon> coupons = couponRepository
+                .getAllCompanyCoupons(companyId);
+
+        if (coupons.isEmpty()) {
             throw new ExistsException("No coupons exists");
         }
-        return couponsList;
+
+        return coupons;
     }
 
-    public List<Coupon> getAllCompanyCouponsByCategory(Category category) throws ExistsException, TokenException {
-        List<Coupon> couponList = couponRepository.findAllCompanyCouponsByCategory(category, this.company_id);
-        if (couponList.isEmpty()) {
-            throw new ExistsException("no coupon exists in this category.");
+    public List<Coupon> getAllCompanyCouponsByCategory(
+            int companyId,
+            Category category) throws ExistsException {
+
+        List<Coupon> coupons = couponRepository
+                .findAllCompanyCouponsByCategory(category, companyId);
+
+        if (coupons.isEmpty()) {
+            throw new ExistsException(
+                    "No coupons exist in this category"
+            );
         }
-        return couponList;
+
+        return coupons;
     }
 
-    public List<Coupon> getAllCompanyCouponsByMaxPrice(double maxPrice) throws ExistsException, TokenException {
-        List<Coupon> couponList = couponRepository.findAllCompanyCouponsByMaxPrice(maxPrice, this.company_id);
-        if (couponList.isEmpty()) {
-            throw new ExistsException("The company has no coupons exists for this max price.");
+    public List<Coupon> getAllCompanyCouponsByMaxPrice(
+            int companyId,
+            double maxPrice) throws ExistsException {
+
+        List<Coupon> coupons = couponRepository
+                .findAllCompanyCouponsByMaxPrice(maxPrice, companyId);
+
+        if (coupons.isEmpty()) {
+            throw new ExistsException(
+                    "No coupons exist for this maximum price"
+            );
         }
-        return couponList;
+
+        return coupons;
     }
 
-    public Company getCompanyDetails() throws ExistsException, TokenException {
-        if (companyRepository.existsById(this.company_id)) {
-            return companyRepository.findById(this.company_id).get();
-        } else {
-            throw new ExistsException("Company not exists.");
-        }
+    public Company getCompanyDetails(int companyId)
+            throws ExistsException {
+
+        return companyRepository.findById(companyId)
+                .orElseThrow(() ->
+                        new ExistsException("Company not found")
+                );
     }
 
-    //UPDATE
-    public void updateCoupon(Coupon coupon) throws CouponException, ExistsException, TokenException {
-        Optional<Coupon> existingCouponOpt = couponRepository.findById(coupon.getId());
-        if (existingCouponOpt.isEmpty()) {
-            throw new ExistsException("Coupon not exists.");
-        }
-        Coupon existingCoupon = existingCouponOpt.get();
+    @Transactional
+    public void updateCoupon(int companyId, Coupon incoming)
+            throws CouponException, ExistsException {
 
-        if (existingCoupon.getCompanyId() != this.company_id && this.company_id != 0) {
-            throw new CouponException("You cannot update a coupon that does not belong to your company.");
+        Coupon existing = couponRepository.findById(incoming.getId())
+                .orElseThrow(() ->
+                        new ExistsException("Coupon not exists")
+                );
+
+        if (existing.getCompanyId() != companyId) {
+            throw new CouponException(
+                    "You cannot update another company's coupon"
+            );
         }
 
-        coupon.setCompanyId(existingCoupon.getCompanyId());
-        couponRepository.save(coupon);
-        System.out.println("Coupon updated.");
+        if (!existing.getTitle().equals(incoming.getTitle()) &&
+                couponRepository.existsByTitleAndCompanyId(
+                        incoming.getTitle(), companyId)) {
+            throw new CouponException(
+                    "A coupon with this title already exists"
+            );
+        }
+
+        existing.setCategory(incoming.getCategory());
+        existing.setTitle(incoming.getTitle());
+        existing.setDescription(incoming.getDescription());
+        existing.setStart_date(incoming.getStart_date());
+        existing.setEnd_date(incoming.getEnd_date());
+        existing.setAmount(incoming.getAmount());
+        existing.setPrice(incoming.getPrice());
+        existing.setImage(incoming.getImage());
+
+        couponRepository.save(existing);
     }
 
-    // NEW METHOD FOR UPDATING COMPANY DETAILS
-    public void updateCompanyDetails(Company company) throws CompanyException, ExistsException {
-        Company existing = companyRepository.findById(this.company_id)
-                .orElseThrow(() -> new ExistsException("Company not found"));
+    @Transactional
+    public void updateCompanyDetails(int companyId, Company incoming)
+            throws CompanyException, ExistsException {
 
-        if (!existing.getEmail().equals(company.getEmail())) {
-            if (companyRepository.existsByEmail(company.getEmail())) {
+        Company existing = companyRepository.findById(companyId)
+                .orElseThrow(() ->
+                        new ExistsException("Company not found")
+                );
+
+        if (!existing.getEmail().equals(incoming.getEmail())) {
+            if (companyRepository.existsByEmail(incoming.getEmail())) {
                 throw new CompanyException("Email already exists");
             }
-            existing.setEmail(company.getEmail());
+
+            existing.setEmail(incoming.getEmail());
         }
-        existing.setPassword(company.getPassword());
+
+        existing.setPassword(incoming.getPassword());
+
         companyRepository.saveAndFlush(existing);
-        System.out.println("Company details updated.");
     }
 
-    //DELETE
     @Transactional
-    public void deleteCoupon(int coupon_id) throws ExistsException, TokenException {
-        if (couponRepository.getOneCompanyCoupon(this.company_id, coupon_id).isEmpty()) {
-            throw new ExistsException("Coupon not exists.");
+    public void deleteCoupon(int companyId, int couponId)
+            throws ExistsException {
+
+        if (couponRepository.getOneCompanyCoupon(
+                companyId, couponId).isEmpty()) {
+            throw new ExistsException("Coupon not exists");
         }
-        customerRepository.deleteCouponsByCouponId(coupon_id);
-        couponRepository.deleteById(coupon_id);
-        System.out.println("Coupon deleted.");
+
+        customerRepository.deleteCouponsByCouponId(couponId);
+        couponRepository.deleteById(couponId);
     }
 }

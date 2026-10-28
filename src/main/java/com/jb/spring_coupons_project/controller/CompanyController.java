@@ -11,100 +11,146 @@ import com.jb.spring_coupons_project.exception.TokenException;
 import com.jb.spring_coupons_project.security.JWTutil;
 import com.jb.spring_coupons_project.service.CompanyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.auth.login.LoginException;
 
 @RestController
-@RequestMapping("/api/company")   //http://localhost:8080/company
+@RequestMapping("/api/company")
 @RequiredArgsConstructor
 public class CompanyController {
 
     private final CompanyService companyService;
     private final JWTutil jwtUtil;
 
-    //CREATE
     @PostMapping("/addCoupon")
-    @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<?> addCoupon(@RequestHeader(name = "Authorization") String token, @RequestBody Coupon coupon) throws LoginException, TokenException, CouponException, CompanyException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
-        companyService.addCoupon(coupon);
+    public ResponseEntity<?> addCoupon(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Coupon coupon)
+            throws LoginException, TokenException,
+            CouponException, CompanyException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+        companyService.addCoupon(companyId, coupon);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
                 .body(coupon.getTitle() + " added");
     }
 
-    //READ
     @GetMapping("/allCoupons")
-    public ResponseEntity<?> getAllCoupons(@RequestHeader(name = "Authorization") String token) throws LoginException, TokenException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
+    public ResponseEntity<?> getAllCoupons(
+            @RequestHeader("Authorization") String token)
+            throws LoginException, TokenException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
-                .body(companyService.getAllCompanyCoupons());
+                .body(companyService.getAllCompanyCoupons(companyId));
     }
 
     @GetMapping("/getOneCoupon/{id}")
-    public ResponseEntity<?> getOneCompanyCoupon(@RequestHeader(name = "Authorization") String token, @PathVariable int id) throws LoginException, TokenException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
+    public ResponseEntity<?> getOneCompanyCoupon(
+            @RequestHeader("Authorization") String token,
+            @PathVariable int id)
+            throws LoginException, TokenException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
-                .body(companyService.getOneCompanyCoupon(id));
+                .body(
+                        companyService.getOneCompanyCoupon(companyId, id)
+                );
     }
 
     @GetMapping("/allCouponsByCategory/{category}")
-    public ResponseEntity<?> getAllCompanyCouponsByCategory(@RequestHeader(name = "Authorization") String token, @PathVariable Category category) throws LoginException, TokenException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
+    public ResponseEntity<?> getAllCompanyCouponsByCategory(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Category category)
+            throws LoginException, TokenException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
-                .body(companyService.getAllCompanyCouponsByCategory(category));
+                .body(
+                        companyService.getAllCompanyCouponsByCategory(
+                                companyId, category
+                        )
+                );
     }
 
     @GetMapping("/allCouponsByMaxPrice/{maxPrice}")
-    public ResponseEntity<?> getAllCompanyCouponsByMaxPrice(@RequestHeader(name = "Authorization") String token, @PathVariable double maxPrice) throws LoginException, TokenException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
+    public ResponseEntity<?> getAllCompanyCouponsByMaxPrice(
+            @RequestHeader("Authorization") String token,
+            @PathVariable double maxPrice)
+            throws LoginException, TokenException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
-                .body(companyService.getAllCompanyCouponsByMaxPrice(maxPrice));
+                .body(
+                        companyService.getAllCompanyCouponsByMaxPrice(
+                                companyId, maxPrice
+                        )
+                );
     }
 
     @GetMapping("/companyDetails")
-    public ResponseEntity<?> getCompanyDetails(@RequestHeader(name = "Authorization") String token) throws ExistsException, TokenException, LoginException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
-        return  ResponseEntity.ok()
+    public ResponseEntity<?> getCompanyDetails(
+            @RequestHeader("Authorization") String token)
+            throws LoginException, TokenException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+
+        return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
-                .body(companyService.getCompanyDetails());
+                .body(companyService.getCompanyDetails(companyId));
     }
 
-    //UPDATE
     @PutMapping("/updateCoupon")
-    @ResponseStatus(code = HttpStatus.ACCEPTED)
-    public ResponseEntity<?> updateCoupon(@RequestHeader(name = "Authorization") String token, @RequestBody Coupon coupon) throws LoginException, TokenException, CouponException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
-        companyService.updateCoupon(coupon);
+    public ResponseEntity<?> updateCoupon(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Coupon coupon)
+            throws LoginException, TokenException,
+            CouponException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+        companyService.updateCoupon(companyId, coupon);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
                 .body(coupon.getTitle() + " updated.");
     }
 
-    // NEW ENDPOINT FOR COMPANY UPDATE
     @PutMapping("/updateDetails")
-    @ResponseStatus(code = HttpStatus.ACCEPTED)
-    public ResponseEntity<?> updateDetails(@RequestHeader(name = "Authorization") String token, @RequestBody Company company) throws LoginException, TokenException, CompanyException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
-        companyService.updateCompanyDetails(company);
+    public ResponseEntity<?> updateDetails(
+            @RequestHeader("Authorization") String token,
+            @RequestBody Company company)
+            throws LoginException, TokenException,
+            CompanyException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+        companyService.updateCompanyDetails(companyId, company);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
                 .body("Company details updated successfully.");
     }
 
-    //DELETE
     @DeleteMapping("/deleteCoupon/{id}")
-    @ResponseStatus(code = HttpStatus.OK)
-    public ResponseEntity<?> deleteCoupon(@RequestHeader(name = "Authorization") String token, @PathVariable int id) throws LoginException, TokenException, CouponException, ExistsException {
-        jwtUtil.checkUser(token, UserType.COMPANY);
-        companyService.deleteCoupon(id);
+    public ResponseEntity<?> deleteCoupon(
+            @RequestHeader("Authorization") String token,
+            @PathVariable int id)
+            throws LoginException, TokenException, ExistsException {
+
+        int companyId = jwtUtil.checkUser(token, UserType.COMPANY);
+        companyService.deleteCoupon(companyId, id);
+
         return ResponseEntity.ok()
                 .header("Authorization", jwtUtil.generateToken(token))
                 .body("Coupon deleted.");
