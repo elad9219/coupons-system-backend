@@ -1,5 +1,7 @@
+
 package com.jb.spring_coupons_project.beans;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,11 +54,11 @@ public class Customer {
     @Column(length = 40, nullable = false)
     private String email;
 
-    @Column(length = 40, nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
+    @Column(length = 100, nullable = false)
     private String password;
 
-    // Customers own the join-table relationship.
-    // No cascade operations: coupons are shared between customers.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "customers_vs_coupons",

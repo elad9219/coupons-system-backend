@@ -1,3 +1,4 @@
+
 package com.jb.spring_coupons_project.service;
 
 import com.jb.spring_coupons_project.beans.Category;
@@ -6,6 +7,7 @@ import com.jb.spring_coupons_project.beans.Customer;
 import com.jb.spring_coupons_project.exception.CouponException;
 import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
+import com.jb.spring_coupons_project.security.PasswordCodec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +26,16 @@ public class CustomerService extends ClientService {
 
     @Override
     public boolean login(String email, String password) {
-        return customerRepository
-                .findByEmailAndPassword(email, password)
-                .isPresent();
+        if (email == null || password == null) {
+            return false;
+        }
+
+        return customerRepository.findByEmail(email)
+                .map(customer -> PasswordCodec.matches(
+                        password,
+                        customer.getPassword()
+                ))
+                .orElse(false);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -37,8 +46,6 @@ public class CustomerService extends ClientService {
             throw new ExistsException("Customer not found");
         }
 
-        // Lock the coupon row until the purchase transaction completes.
-        // Concurrent purchases of the same coupon are serialized.
         Coupon coupon = couponRepository
                 .findByIdForUpdate(couponId)
                 .orElseThrow(() ->
@@ -75,8 +82,6 @@ public class CustomerService extends ClientService {
             );
         }
 
-        // Flush the stock update before writing directly to the
-        // customer-coupon join table.
         coupon.setAmount(coupon.getAmount() - 1);
         couponRepository.saveAndFlush(coupon);
 
@@ -148,7 +153,7 @@ public class CustomerService extends ClientService {
                 );
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateCustomerDetails(
             int customerId,
             Customer incoming)
@@ -158,6 +163,11 @@ public class CustomerService extends ClientService {
                 .orElseThrow(() ->
                         new ExistsException("Customer not found")
                 );
+
+        if (incoming.getEmail() == null ||
+                incoming.getEmail().isBlank()) {
+            throw new CustomerException("Email is required");
+        }
 
         if (!existing.getEmail().equals(incoming.getEmail())) {
             if (customerRepository.existsByEmail(
@@ -171,7 +181,18 @@ public class CustomerService extends ClientService {
 
         existing.setFirst_name(incoming.getFirst_name());
         existing.setLast_name(incoming.getLast_name());
-        existing.setPassword(incoming.getPassword());
+
+        if (incoming.getPassword() != null &&
+                !incoming.getPassword().isBlank()) {
+
+            try {
+                existing.setPassword(
+                        PasswordCodec.encode(incoming.getPassword())
+                );
+            } catch (IllegalArgumentException ex) {
+                throw new CustomerException(ex.getMessage());
+            }
+        }
 
         customerRepository.saveAndFlush(existing);
     }

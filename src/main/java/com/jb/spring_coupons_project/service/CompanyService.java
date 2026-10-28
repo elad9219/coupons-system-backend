@@ -1,3 +1,4 @@
+
 package com.jb.spring_coupons_project.service;
 
 import com.jb.spring_coupons_project.beans.Category;
@@ -6,12 +7,12 @@ import com.jb.spring_coupons_project.beans.Coupon;
 import com.jb.spring_coupons_project.exception.CompanyException;
 import com.jb.spring_coupons_project.exception.CouponException;
 import com.jb.spring_coupons_project.exception.ExistsException;
+import com.jb.spring_coupons_project.security.PasswordCodec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,9 +20,17 @@ public class CompanyService extends ClientService {
 
     @Override
     public boolean login(String email, String password) {
-        return companyRepository
-                .findByEmailAndPassword(email, password)
-                .isPresent();
+        if (email == null || password == null) {
+            return false;
+        }
+
+        Company company = companyRepository.findByEmail(email);
+
+        return company != null &&
+                PasswordCodec.matches(
+                        password,
+                        company.getPassword()
+                );
     }
 
     @Transactional
@@ -147,7 +156,7 @@ public class CompanyService extends ClientService {
         couponRepository.save(existing);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateCompanyDetails(int companyId, Company incoming)
             throws CompanyException, ExistsException {
 
@@ -155,6 +164,11 @@ public class CompanyService extends ClientService {
                 .orElseThrow(() ->
                         new ExistsException("Company not found")
                 );
+
+        if (incoming.getEmail() == null ||
+                incoming.getEmail().isBlank()) {
+            throw new CompanyException("Email is required");
+        }
 
         if (!existing.getEmail().equals(incoming.getEmail())) {
             if (companyRepository.existsByEmail(incoming.getEmail())) {
@@ -164,7 +178,17 @@ public class CompanyService extends ClientService {
             existing.setEmail(incoming.getEmail());
         }
 
-        existing.setPassword(incoming.getPassword());
+        if (incoming.getPassword() != null &&
+                !incoming.getPassword().isBlank()) {
+
+            try {
+                existing.setPassword(
+                        PasswordCodec.encode(incoming.getPassword())
+                );
+            } catch (IllegalArgumentException ex) {
+                throw new CompanyException(ex.getMessage());
+            }
+        }
 
         companyRepository.saveAndFlush(existing);
     }

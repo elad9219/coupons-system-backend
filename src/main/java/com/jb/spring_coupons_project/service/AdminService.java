@@ -1,3 +1,4 @@
+
 package com.jb.spring_coupons_project.service;
 
 import com.jb.spring_coupons_project.beans.Company;
@@ -6,6 +7,7 @@ import com.jb.spring_coupons_project.exception.CompanyException;
 import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
 import com.jb.spring_coupons_project.exception.TokenException;
+import com.jb.spring_coupons_project.security.PasswordCodec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,25 +21,57 @@ public class AdminService extends ClientService {
 
     @Override
     public boolean login(String email, String password) {
-        return email.equals("admin@admin.com")
-                && password.equals("admin");
+        return "admin@admin.com".equals(email)
+                && "admin".equals(password);
     }
 
     public void addCompany(Company company)
             throws CompanyException, TokenException {
 
-        if (companyRepository.existsByName(company.getName())) {
+        if (company == null ||
+                company.getName() == null ||
+                company.getName().isBlank() ||
+                company.getEmail() == null ||
+                company.getEmail().isBlank()) {
             throw new CompanyException(
-                    "The company is already exists"
+                    "Company name and email are required"
             );
         }
 
+        if (companyRepository.existsByName(company.getName())) {
+            throw new CompanyException(
+                    "The company already exists"
+            );
+        }
+
+        if (companyRepository.existsByEmail(company.getEmail())) {
+            throw new CompanyException(
+                    "Email already exists"
+            );
+        }
+
+        try {
+            company.setPassword(
+                    PasswordCodec.encode(company.getPassword())
+            );
+        } catch (IllegalArgumentException ex) {
+            throw new CompanyException(ex.getMessage());
+        }
+
+        company.setId(0);
+        company.setCoupons(null);
+
         companyRepository.save(company);
-        System.out.println("company added");
     }
 
     public void addCustomer(Customer customer)
             throws CustomerException, TokenException {
+
+        if (customer == null ||
+                customer.getEmail() == null ||
+                customer.getEmail().isBlank()) {
+            throw new CustomerException("Email is required");
+        }
 
         if (customerRepository.existsByEmail(customer.getEmail())) {
             throw new CustomerException(
@@ -45,8 +79,18 @@ public class AdminService extends ClientService {
             );
         }
 
+        try {
+            customer.setPassword(
+                    PasswordCodec.encode(customer.getPassword())
+            );
+        } catch (IllegalArgumentException ex) {
+            throw new CustomerException(ex.getMessage());
+        }
+
+        customer.setId(0);
+        customer.setCoupons(null);
+
         customerRepository.save(customer);
-        System.out.println("customer added");
     }
 
     public Optional<Company> getOneCompany(int id)
@@ -103,30 +147,106 @@ public class AdminService extends ClientService {
         return customers;
     }
 
-    public void updateCompany(Company company)
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCompany(Company incoming)
             throws ExistsException, TokenException, CompanyException {
 
-        if (!companyRepository.existsById(company.getId())) {
-            throw new ExistsException(
-                    "Company not exists"
-            );
+        Company existing = companyRepository.findById(incoming.getId())
+                .orElseThrow(() ->
+                        new ExistsException("Company not exists")
+                );
+
+        if (incoming.getName() != null &&
+                !incoming.getName().equals(existing.getName())) {
+
+            if (incoming.getName().isBlank()) {
+                throw new CompanyException(
+                        "Company name is required"
+                );
+            }
+
+            if (companyRepository.existsByName(incoming.getName())) {
+                throw new CompanyException(
+                        "Company name already exists"
+                );
+            }
+
+            existing.setName(incoming.getName());
         }
 
-        companyRepository.save(company);
-        System.out.println("Company updated");
+        if (incoming.getEmail() != null &&
+                !incoming.getEmail().equals(existing.getEmail())) {
+
+            if (incoming.getEmail().isBlank()) {
+                throw new CompanyException("Email is required");
+            }
+
+            if (companyRepository.existsByEmail(incoming.getEmail())) {
+                throw new CompanyException("Email already exists");
+            }
+
+            existing.setEmail(incoming.getEmail());
+        }
+
+        if (incoming.getPassword() != null &&
+                !incoming.getPassword().isBlank()) {
+
+            try {
+                existing.setPassword(
+                        PasswordCodec.encode(incoming.getPassword())
+                );
+            } catch (IllegalArgumentException ex) {
+                throw new CompanyException(ex.getMessage());
+            }
+        }
+
+        companyRepository.saveAndFlush(existing);
     }
 
-    public void updateCustomer(Customer customer)
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCustomer(Customer incoming)
             throws ExistsException, TokenException, CompanyException {
 
-        if (!customerRepository.existsById(customer.getId())) {
-            throw new ExistsException(
-                    "Customer not exists"
-            );
+        Customer existing = customerRepository.findById(incoming.getId())
+                .orElseThrow(() ->
+                        new ExistsException("Customer not exists")
+                );
+
+        if (incoming.getEmail() != null &&
+                !incoming.getEmail().equals(existing.getEmail())) {
+
+            if (incoming.getEmail().isBlank()) {
+                throw new CompanyException("Email is required");
+            }
+
+            if (customerRepository.existsByEmail(incoming.getEmail())) {
+                throw new CompanyException("Email already exists");
+            }
+
+            existing.setEmail(incoming.getEmail());
         }
 
-        customerRepository.save(customer);
-        System.out.println("Customer updated");
+        if (incoming.getFirst_name() != null) {
+            existing.setFirst_name(incoming.getFirst_name());
+        }
+
+        if (incoming.getLast_name() != null) {
+            existing.setLast_name(incoming.getLast_name());
+        }
+
+        if (incoming.getPassword() != null &&
+                !incoming.getPassword().isBlank()) {
+
+            try {
+                existing.setPassword(
+                        PasswordCodec.encode(incoming.getPassword())
+                );
+            } catch (IllegalArgumentException ex) {
+                throw new CompanyException(ex.getMessage());
+            }
+        }
+
+        customerRepository.saveAndFlush(existing);
     }
 
     public void deleteCompany(int id)
@@ -139,7 +259,6 @@ public class AdminService extends ClientService {
         }
 
         companyRepository.deleteById(id);
-        System.out.println("Company deleted (and all its coupons)");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -152,15 +271,11 @@ public class AdminService extends ClientService {
             );
         }
 
-        // Remove join-table relationships before deleting the customer.
-        // Both operations participate in the same transaction.
         customerRepository.deletePurchaseLinksByCustomerId(id);
 
         int deletedCustomers =
                 customerRepository.deleteCustomerRowById(id);
 
-        // Never report a successful deletion if no customer row
-        // was actually removed.
         if (deletedCustomers != 1) {
             throw new IllegalStateException(
                     "Customer deletion failed for ID " + id
