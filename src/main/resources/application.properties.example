@@ -1,26 +1,57 @@
+
 # ==========================================
-# DATABASE CONFIGURATION (PostgreSQL - Neon Public Template)
+# Database Configuration
 # ==========================================
-spring.datasource.url=jdbc:postgresql://<YOUR_NEON_CLOUD_HOST>/neondb?sslmode=require
-spring.datasource.username=<YOUR_NEON_DB_USERNAME>
-spring.datasource.password=<YOUR_NEON_DB_PASSWORD>
+
+# Replace these placeholders with environment-specific values.
+spring.datasource.url=jdbc:postgresql://<YOUR_DATABASE_HOST>/neondb?sslmode=require
+spring.datasource.username=<YOUR_DATABASE_USERNAME>
+spring.datasource.password=<YOUR_DATABASE_PASSWORD>
 spring.datasource.driver-class-name=org.postgresql.Driver
 
-# JPA & Hibernate Settings
+# ==========================================
+# JPA and Hibernate
+# ==========================================
+
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.hibernate.ddl-auto=create
+
+# Safe default for existing deployed databases.
+# Use 'update' for local development when schema creation is needed.
+# Never use 'create' or 'create-drop' with a persistent database.
+spring.jpa.hibernate.ddl-auto=validate
+
 spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
 
-# Logging Management
+# ==========================================
+# Logging
+# ==========================================
+
 logging.level.org.hibernate.tool.schema.internal.ExceptionHandlerLoggedImpl=ERROR
 logging.level.org.hibernate.engine.jdbc.spi.SqlExceptionHelper=ERROR
 
-# Application Profiles
+# ==========================================
+# Application Profile
+# ==========================================
+
 spring.profiles.active=development
 
-# Swagger Configuration Strategy
+# ==========================================
+# Swagger Compatibility
+# ==========================================
+
 spring.mvc.pathmatch.matching-strategy=ant-path-matcher
 
-# Hikari Connection Pool Optimization
+# ==========================================
+# Connection Pool
+# ==========================================
+
 spring.datasource.hikari.validation-timeout=5000
 spring.datasource.hikari.connection-timeout=30000
+
+# ==========================================
+# Authentication
+# ==========================================
+
+# Configure COUPONS_JWT_SECRET_BASE64 in the environment.
+# Use a random Base64-encoded secret containing at least 32 bytes.
+# Never commit actual secrets or passwords.
