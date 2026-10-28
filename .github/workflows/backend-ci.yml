@@ -1,131 +1,51 @@
-bash <<'BASH'
-set -euo pipefail
+name: Backend CI
 
-JAR="target/advanced_spring-0.0.1-SNAPSHOT.jar"
-CONTAINER="coupons-reset-smoke-$$"
-LOG="$(mktemp)"
-APP_PID=""
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
-cleanup() {
-    if [[ -n "$APP_PID" ]]; then
-        kill "$APP_PID" 2>/dev/null || true
-        wait "$APP_PID" 2>/dev/null || true
-    fi
-    docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
-    rm -f "$LOG"
-}
-trap cleanup EXIT
+permissions:
+  contents: read
 
-if [[ ! -f "$JAR" ]]; then
-    echo "FAIL: Build the JAR first."
-    exit 1
-fi
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
 
-if jar tf "$JAR" | grep -q '^BOOT-INF/classes/application.properties$'; then
-    echo "FAIL: Private application.properties is inside the JAR."
-    exit 1
-fi
+    env:
+      SPRING_MVC_PATHMATCH_MATCHING_STRATEGY: ant-path-matcher
 
-echo "Starting isolated PostgreSQL..."
-docker run -d --rm \
-    --name "$CONTAINER" \
-    -e POSTGRES_USER=smoke_user \
-    -e POSTGRES_PASSWORD=temporary_smoke_password \
-    -e POSTGRES_DB=coupons_smoke \
-    -p 127.0.0.1::5432 \
-    postgres:16-alpine >/dev/null
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-for i in $(seq 1 30); do
-    if docker exec "$CONTAINER" \
-        pg_isready -U smoke_user -d coupons_smoke \
-        >/dev/null 2>&1; then
-        break
-    fi
-    sleep 1
-done
+      - name: Set up Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: maven
 
-PORT_MAPPING="$(docker port "$CONTAINER" 5432/tcp)"
-DB_PORT="${PORT_MAPPING##*:}"
+      - name: Run tests and package application
+        run: mvn -B --no-transfer-progress clean verify
 
-export SPRING_DATASOURCE_URL="jdbc:postgresql://127.0.0.1:${DB_PORT}/coupons_smoke"
-export SPRING_DATASOURCE_USERNAME="smoke_user"
-export SPRING_DATASOURCE_PASSWORD="temporary_smoke_password"
-export SPRING_JPA_HIBERNATE_DDL_AUTO="create"
-export COUPONS_DEMO_RESET_ON_STARTUP="true"
-export COUPONS_JWT_SECRET_BASE64="$(openssl rand -base64 32 | tr -d '\n')"
+      - name: Verify private application properties are excluded
+        shell: bash
+        run: |
+          JAR="target/advanced_spring-0.0.1-SNAPSHOT.jar"
 
-run_app() {
-    : > "$LOG"
+          if [[ ! -f "$JAR" ]]; then
+            echo "Expected application JAR was not generated."
+            exit 1
+          fi
 
-    java -jar "$JAR" \
-        --server.port=0 \
-        --spring.mvc.pathmatch.matching-strategy=ant-path-matcher \
-        > "$LOG" 2>&1 &
+          if jar tf "$JAR" | grep -q '^BOOT-INF/classes/application.properties$'; then
+            echo "ERROR: Private application.properties is packaged in the JAR."
+            exit 1
+          fi
 
-    APP_PID=$!
-
-    for i in $(seq 1 60); do
-        if grep -q "Password migration completed:" "$LOG"; then
-            return 0
-        fi
-
-        if ! kill -0 "$APP_PID" 2>/dev/null; then
-            break
-        fi
-
-        sleep 1
-    done
-
-    echo "FAIL: Backend startup failed."
-    tail -60 "$LOG"
-    return 1
-}
-
-stop_app() {
-    kill "$APP_PID" 2>/dev/null || true
-    wait "$APP_PID" 2>/dev/null || true
-    APP_PID=""
-}
-
-customer_count() {
-    docker exec "$CONTAINER" \
-        psql -U smoke_user -d coupons_smoke -tAc \
-        "SELECT COUNT(*) FROM customers" | tr -d '[:space:]'
-}
-
-echo "First application startup..."
-run_app
-
-BEFORE="$(customer_count)"
-echo "Customers after initial startup: $BEFORE"
-
-[[ "$BEFORE" == "21" ]] || exit 1
-
-docker exec "$CONTAINER" \
-    psql -U smoke_user -d coupons_smoke -c \
-    "DELETE FROM customers
-     WHERE customer_id = (
-         SELECT customer_id FROM customers
-         WHERE email <> 'kobi@gmail.com'
-         ORDER BY customer_id
-         LIMIT 1
-     );"
-
-AFTER_DELETE="$(customer_count)"
-echo "Customers after test deletion: $AFTER_DELETE"
-
-[[ "$AFTER_DELETE" == "20" ]] || exit 1
-
-stop_app
-
-echo "Second application startup..."
-run_app
-
-AFTER_RESTART="$(customer_count)"
-echo "Customers after restart: $AFTER_RESTART"
-
-[[ "$AFTER_RESTART" == "21" ]] || exit 1
-
-echo "PASS: Demo reset restores the initial customer data."
-echo "PASS: Private application.properties is not packaged."
-BASH
+          echo "PASS: Private application.properties is absent from the JAR."
