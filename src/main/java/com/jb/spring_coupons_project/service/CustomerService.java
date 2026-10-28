@@ -10,13 +10,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService extends ClientService {
+
+    private static final ZoneId BUSINESS_ZONE =
+            ZoneId.of("Asia/Jerusalem");
 
     @Override
     public boolean login(String email, String password) {
@@ -25,22 +29,36 @@ public class CustomerService extends ClientService {
                 .isPresent();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void purchaseCoupon(int customerId, int couponId)
             throws CouponException, ExistsException {
 
-        Coupon coupon = couponRepository.findById(couponId)
+        if (!customerRepository.existsById(customerId)) {
+            throw new ExistsException("Customer not found");
+        }
+
+        // Lock the coupon row until the purchase transaction completes.
+        // Concurrent purchases of the same coupon are serialized.
+        Coupon coupon = couponRepository
+                .findByIdForUpdate(couponId)
                 .orElseThrow(() ->
                         new ExistsException("Coupon not exists")
                 );
 
+        LocalDate today = LocalDate.now(BUSINESS_ZONE);
+
         if (coupon.isExpired() ||
                 (coupon.getEnd_date() != null &&
-                        coupon.getEnd_date().isBefore(
-                                java.time.LocalDate.now()
-                        ))) {
+                        coupon.getEnd_date().isBefore(today))) {
             throw new CouponException(
                     "This coupon has expired and cannot be purchased"
+            );
+        }
+
+        if (coupon.getStart_date() != null &&
+                coupon.getStart_date().isAfter(today)) {
+            throw new CouponException(
+                    "This coupon is not available for purchase yet"
             );
         }
 
@@ -57,10 +75,15 @@ public class CustomerService extends ClientService {
             );
         }
 
-        couponRepository.addPurchasedCoupon(customerId, couponId);
-
+        // Flush the stock update before writing directly to the
+        // customer-coupon join table.
         coupon.setAmount(coupon.getAmount() - 1);
-        couponRepository.save(coupon);
+        couponRepository.saveAndFlush(coupon);
+
+        couponRepository.addPurchasedCoupon(
+                customerId,
+                couponId
+        );
     }
 
     public List<Coupon> getCustomerCoupons(int customerId)
@@ -70,7 +93,9 @@ public class CustomerService extends ClientService {
                 .findAllCustomerCoupons(customerId);
 
         if (coupons.isEmpty()) {
-            throw new ExistsException("No purchased coupons exist");
+            throw new ExistsException(
+                    "No purchased coupons exist"
+            );
         }
 
         return coupons;
@@ -82,7 +107,9 @@ public class CustomerService extends ClientService {
 
         List<Coupon> coupons = getCustomerCoupons(customerId)
                 .stream()
-                .filter(coupon -> coupon.getCategory() == category)
+                .filter(coupon ->
+                        coupon.getCategory() == category
+                )
                 .collect(Collectors.toList());
 
         if (coupons.isEmpty()) {
@@ -133,7 +160,9 @@ public class CustomerService extends ClientService {
                 );
 
         if (!existing.getEmail().equals(incoming.getEmail())) {
-            if (customerRepository.existsByEmail(incoming.getEmail())) {
+            if (customerRepository.existsByEmail(
+                    incoming.getEmail()
+            )) {
                 throw new CustomerException("Email already exists");
             }
 
