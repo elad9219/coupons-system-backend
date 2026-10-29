@@ -1,11 +1,10 @@
-# Base image for Java 11 (Fixed link)
-FROM amazoncorretto:11-alpine-jdk
 
-# The port our app runs on
+FROM amazoncorretto:21-alpine
+
+WORKDIR /app
+
 EXPOSE 8080
 
-# Copy the JAR from local target to the container
-COPY target/advanced_spring-0.0.1-SNAPSHOT.jar /usr/src/app.jar
+COPY target/advanced_spring-0.0.1-SNAPSHOT.jar /app/app.jar
 
-# Run the application
-CMD ["java", "-jar", "/usr/src/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

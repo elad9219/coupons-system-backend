@@ -1,3 +1,4 @@
+
 package com.jb.spring_coupons_project.repository;
 
 import com.jb.spring_coupons_project.beans.Customer;
@@ -26,13 +27,25 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     @Query("SELECT c.email FROM Customer c WHERE c.id = ?1")
     Optional<String> findEmailForAuthById(int id);
 
-    @Modifying
+    /**
+     * Removes purchase relationships before deleting a coupon.
+     *
+     * Flush pending changes first and clear the persistence context
+     * afterward so managed Customer entities cannot retain stale
+     * references to the coupon being deleted.
+     */
+    @Modifying(
+            flushAutomatically = true,
+            clearAutomatically = true
+    )
     @Query(
             value = "DELETE FROM customers_vs_coupons " +
-                    "WHERE coupon_id = ?1",
+                    "WHERE coupon_id = :couponId",
             nativeQuery = true
     )
-    void deleteCouponsByCouponId(int couponId);
+    void deleteCouponsByCouponId(
+            @Param("couponId") int couponId
+    );
 
     @Modifying(
             flushAutomatically = true,

@@ -1,17 +1,25 @@
+
 package com.jb.spring_coupons_project.beans;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import org.junit.jupiter.api.Test;
 
-import javax.persistence.CascadeType;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import java.lang.reflect.Field;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JpaRelationshipTest {
 
@@ -71,6 +79,26 @@ class JpaRelationshipTest {
                 new CascadeType[0],
                 couponRelationship.cascade()
         );
+    }
+
+    @Test
+    void companyCouponsUseTheExistingForeignKey() throws Exception {
+        Field field = Company.class.getDeclaredField("coupons");
+
+        OneToMany relationship =
+                field.getAnnotation(OneToMany.class);
+
+        JoinColumn joinColumn =
+                field.getAnnotation(JoinColumn.class);
+
+        assertNotNull(relationship);
+        assertNotNull(joinColumn);
+
+        assertEquals("company_id", joinColumn.name());
+        assertEquals("id", joinColumn.referencedColumnName());
+        assertFalse(joinColumn.insertable());
+        assertFalse(joinColumn.updatable());
+        assertNull(field.getAnnotation(JoinTable.class));
     }
 
     @Test

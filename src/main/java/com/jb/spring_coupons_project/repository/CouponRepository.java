@@ -1,15 +1,16 @@
+
 package com.jb.spring_coupons_project.repository;
 
 import com.jb.spring_coupons_project.beans.Category;
 import com.jb.spring_coupons_project.beans.Coupon;
+import jakarta.persistence.LockModeType;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import javax.persistence.LockModeType;
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
