@@ -8,6 +8,8 @@ import com.jb.spring_coupons_project.exception.CustomerException;
 import com.jb.spring_coupons_project.exception.ExistsException;
 import com.jb.spring_coupons_project.exception.TokenException;
 import com.jb.spring_coupons_project.security.PasswordCodec;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AdminService extends ClientService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public boolean login(String email, String password) {
@@ -249,16 +254,50 @@ public class AdminService extends ClientService {
         customerRepository.saveAndFlush(existing);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void deleteCompany(int id)
             throws ExistsException, TokenException {
 
         if (!companyRepository.existsById(id)) {
-            throw new ExistsException(
-                    "Company not exists"
+            throw new ExistsException("Company not exists");
+        }
+
+        // Synchronize pending changes before executing bulk SQL.
+        entityManager.flush();
+
+        // Remove purchase links belonging to this company's coupons.
+        // Customer accounts and unrelated purchases must remain intact.
+        entityManager.createNativeQuery(
+                        "DELETE FROM customers_vs_coupons " +
+                                "WHERE coupon_id IN (" +
+                                "SELECT coupon_id FROM coupons " +
+                                "WHERE company_id = :companyId)"
+                )
+                .setParameter("companyId", id)
+                .executeUpdate();
+
+        // Delete coupons without Hibernate cascading through
+        // customer relationships.
+        entityManager.createNativeQuery(
+                        "DELETE FROM coupons WHERE company_id = :companyId"
+                )
+                .setParameter("companyId", id)
+                .executeUpdate();
+
+        int deletedCompanies = entityManager.createNativeQuery(
+                        "DELETE FROM companies WHERE id = :companyId"
+                )
+                .setParameter("companyId", id)
+                .executeUpdate();
+
+        if (deletedCompanies != 1) {
+            throw new IllegalStateException(
+                    "Company deletion failed for ID " + id
             );
         }
 
-        companyRepository.deleteById(id);
+        // Bulk operations bypass JPA-managed entity state.
+        entityManager.clear();
     }
 
     @Transactional(rollbackFor = Exception.class)
