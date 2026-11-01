@@ -12,11 +12,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CompanyService extends ClientService {
+
+    private static final ZoneId BUSINESS_ZONE =
+            ZoneId.of("Asia/Jerusalem");
 
     @Override
     public boolean login(String email, String password) {
@@ -51,7 +56,11 @@ public class CompanyService extends ClientService {
         coupon.setId(0);
         coupon.setCompanyId(companyId);
         coupon.setCustomers(null);
-        coupon.setExpired(false);
+        coupon.setExpired(
+                coupon.getEnd_date().isBefore(
+                        LocalDate.now(BUSINESS_ZONE)
+                )
+        );
 
         couponRepository.save(coupon);
     }
@@ -168,6 +177,14 @@ public class CompanyService extends ClientService {
         existing.setPrice(incoming.getPrice());
         existing.setImage(incoming.getImage());
 
+        // Derive expiration from the validated end date.
+        // Never trust an expired flag supplied by the client.
+        existing.setExpired(
+                incoming.getEnd_date().isBefore(
+                        LocalDate.now(BUSINESS_ZONE)
+                )
+        );
+
         couponRepository.save(existing);
     }
 
@@ -181,6 +198,12 @@ public class CompanyService extends ClientService {
                 .orElseThrow(() ->
                         new ExistsException("Company not found")
                 );
+
+        if (isProtectedDemoCompany(existing)) {
+            throw new CompanyException(
+                    "This public demo company account cannot be modified"
+            );
+        }
 
         if (incoming.getEmail() == null ||
                 incoming.getEmail().isBlank()) {

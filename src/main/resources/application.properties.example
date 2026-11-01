@@ -4,7 +4,7 @@
 # Never commit application.properties with credentials.
 
 # Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/coupons_local
+spring.datasource.url=jdbc:postgresql://localhost:55432/coupons_local
 spring.datasource.username=YOUR_DATABASE_USERNAME
 spring.datasource.password=YOUR_DATABASE_PASSWORD
 spring.datasource.driver-class-name=org.postgresql.Driver
