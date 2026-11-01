@@ -9,6 +9,7 @@ public final class CouponInputValidator {
     private static final int MAX_TITLE_LENGTH = 25;
     private static final int MAX_DESCRIPTION_LENGTH = 1024;
     private static final int MAX_IMAGE_LENGTH = 1024;
+    private static final int MAX_COUPON_AMOUNT = 100_000;
     private static final double MAX_PRICE = 9999.0;
 
     private CouponInputValidator() {
@@ -64,12 +65,20 @@ public final class CouponInputValidator {
             );
         }
 
-        if (coupon.getAmount() < 0 ||
-                (creating && coupon.getAmount() == 0)) {
+        int amount = coupon.getAmount();
+
+        if (amount < (creating ? 1 : 0)) {
             throw new CouponException(
                     creating
                             ? "New coupon stock must be greater than zero"
                             : "Coupon stock cannot be negative"
+            );
+        }
+
+        if (amount > MAX_COUPON_AMOUNT) {
+            throw new CouponException(
+                    "Coupon amount must not exceed " +
+                            MAX_COUPON_AMOUNT
             );
         }
 
