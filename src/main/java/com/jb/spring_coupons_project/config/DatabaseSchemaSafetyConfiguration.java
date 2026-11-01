@@ -1,3 +1,4 @@
+
 package com.jb.spring_coupons_project.config;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -18,19 +19,48 @@ public class DatabaseSchemaSafetyConfiguration {
     public static BeanFactoryPostProcessor databaseSchemaSafetyPostProcessor(
             Environment environment) {
 
-        return beanFactory -> validateSchemaSettings(
-                environment.getProperty("spring.jpa.hibernate.ddl-auto"),
-                environment.getProperty(
-                        "spring.jpa.properties.hibernate.hbm2ddl.auto"
-                ),
-                environment.getProperty("spring.datasource.url"),
-                Boolean.parseBoolean(
-                        environment.getProperty(
-                                "COUPONS_DEMO_RESET_ON_STARTUP",
-                                "false"
-                        )
-                )
-        );
+        return beanFactory -> {
+            String ddlAuto = environment.getProperty(
+                    "spring.jpa.hibernate.ddl-auto"
+            );
+
+            String hibernateDdlAuto = environment.getProperty(
+                    "spring.jpa.properties.hibernate.hbm2ddl.auto"
+            );
+
+            String datasourceUrl = environment.getProperty(
+                    "spring.datasource.url"
+            );
+
+            boolean demoResetEnabled = Boolean.parseBoolean(
+                    environment.getProperty(
+                            "COUPONS_DEMO_RESET_ON_STARTUP",
+                            "false"
+                    )
+            );
+
+            boolean publicDemoEnabled = Boolean.parseBoolean(
+                    environment.getProperty(
+                            "COUPONS_PUBLIC_DEMO",
+                            "false"
+                    )
+            );
+
+            validateSchemaSettings(
+                    ddlAuto,
+                    hibernateDdlAuto,
+                    datasourceUrl,
+                    demoResetEnabled
+            );
+
+            validatePublicDemoSettings(
+                    ddlAuto,
+                    hibernateDdlAuto,
+                    datasourceUrl,
+                    demoResetEnabled,
+                    publicDemoEnabled
+            );
+        };
     }
 
     static void validateSchemaSettings(
@@ -54,15 +84,12 @@ public class DatabaseSchemaSafetyConfiguration {
             return;
         }
 
-        boolean intentionalDemoReset =
-                demoResetEnabled &&
-                        isPostgreSql(datasourceUrl) &&
-                        "create".equals(springStrategy) &&
-                        (hibernateStrategy == null ||
-                                hibernateStrategy.isEmpty() ||
-                                "create".equals(hibernateStrategy));
-
-        if (intentionalDemoReset) {
+        if (isIntentionalDemoReset(
+                springStrategy,
+                hibernateStrategy,
+                datasourceUrl,
+                demoResetEnabled
+        )) {
             return;
         }
 
@@ -74,6 +101,47 @@ public class DatabaseSchemaSafetyConfiguration {
                         "Never enable this for a database containing " +
                         "data that must be preserved."
         );
+    }
+
+    static void validatePublicDemoSettings(
+            String ddlAuto,
+            String hibernateDdlAuto,
+            String datasourceUrl,
+            boolean demoResetEnabled,
+            boolean publicDemoEnabled) {
+
+        if (!publicDemoEnabled) {
+            return;
+        }
+
+        if (!isIntentionalDemoReset(
+                normalize(ddlAuto),
+                normalize(hibernateDdlAuto),
+                datasourceUrl,
+                demoResetEnabled
+        )) {
+            throw new IllegalStateException(
+                    "Public demo requires a dedicated, disposable " +
+                            "PostgreSQL database with ddl-auto=create " +
+                            "and COUPONS_DEMO_RESET_ON_STARTUP=true. " +
+                            "Do not enable public demo mode on a database " +
+                            "containing real or persistent user data."
+            );
+        }
+    }
+
+    private static boolean isIntentionalDemoReset(
+            String springStrategy,
+            String hibernateStrategy,
+            String datasourceUrl,
+            boolean demoResetEnabled) {
+
+        return demoResetEnabled &&
+                isPostgreSql(datasourceUrl) &&
+                "create".equals(springStrategy) &&
+                (hibernateStrategy == null ||
+                        hibernateStrategy.isEmpty() ||
+                        "create".equals(hibernateStrategy));
     }
 
     private static String normalize(String value) {
