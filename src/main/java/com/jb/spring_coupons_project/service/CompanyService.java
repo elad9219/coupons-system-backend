@@ -33,13 +33,15 @@ public class CompanyService extends ClientService {
                 );
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void addCoupon(int companyId, Coupon coupon)
             throws CouponException, CompanyException, ExistsException {
 
         if (!companyRepository.existsById(companyId)) {
             throw new ExistsException("Company not found");
         }
+
+        CouponInputValidator.validate(coupon, true);
 
         if (couponRepository.existsByTitleAndCompanyId(
                 coupon.getTitle(), companyId)) {
@@ -48,6 +50,8 @@ public class CompanyService extends ClientService {
 
         coupon.setId(0);
         coupon.setCompanyId(companyId);
+        coupon.setCustomers(null);
+        coupon.setExpired(false);
 
         couponRepository.save(coupon);
     }
@@ -85,7 +89,9 @@ public class CompanyService extends ClientService {
             Category category) throws ExistsException {
 
         List<Coupon> coupons = couponRepository
-                .findAllCompanyCouponsByCategory(category, companyId);
+                .findAllCompanyCouponsByCategory(
+                        category, companyId
+                );
 
         if (coupons.isEmpty()) {
             throw new ExistsException(
@@ -101,7 +107,9 @@ public class CompanyService extends ClientService {
             double maxPrice) throws ExistsException {
 
         List<Coupon> coupons = couponRepository
-                .findAllCompanyCouponsByMaxPrice(maxPrice, companyId);
+                .findAllCompanyCouponsByMaxPrice(
+                        maxPrice, companyId
+                );
 
         if (coupons.isEmpty()) {
             throw new ExistsException(
@@ -121,20 +129,27 @@ public class CompanyService extends ClientService {
                 );
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateCoupon(int companyId, Coupon incoming)
             throws CouponException, ExistsException {
 
-        Coupon existing = couponRepository.findById(incoming.getId())
-                .orElseThrow(() ->
-                        new ExistsException("Coupon not exists")
-                );
+        if (incoming == null) {
+            throw new CouponException("Coupon details are required");
+        }
+
+        Coupon existing = couponRepository.findById(
+                incoming.getId()
+        ).orElseThrow(() ->
+                new ExistsException("Coupon not exists")
+        );
 
         if (existing.getCompanyId() != companyId) {
             throw new CouponException(
                     "You cannot update another company's coupon"
             );
         }
+
+        CouponInputValidator.validate(incoming, false);
 
         if (!existing.getTitle().equals(incoming.getTitle()) &&
                 couponRepository.existsByTitleAndCompanyId(
@@ -157,8 +172,10 @@ public class CompanyService extends ClientService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateCompanyDetails(int companyId, Company incoming)
-            throws CompanyException, ExistsException {
+    public void updateCompanyDetails(
+            int companyId,
+            Company incoming
+    ) throws CompanyException, ExistsException {
 
         Company existing = companyRepository.findById(companyId)
                 .orElseThrow(() ->
@@ -171,7 +188,9 @@ public class CompanyService extends ClientService {
         }
 
         if (!existing.getEmail().equals(incoming.getEmail())) {
-            if (companyRepository.existsByEmail(incoming.getEmail())) {
+            if (companyRepository.existsByEmail(
+                    incoming.getEmail()
+            )) {
                 throw new CompanyException("Email already exists");
             }
 

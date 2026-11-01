@@ -1,5 +1,7 @@
+
 package com.jb.spring_coupons_project.service;
 
+import com.jb.spring_coupons_project.beans.Category;
 import com.jb.spring_coupons_project.beans.Coupon;
 import com.jb.spring_coupons_project.beans.UserType;
 import com.jb.spring_coupons_project.controller.CompanyController;
@@ -12,6 +14,7 @@ import com.jb.spring_coupons_project.security.JWTutil;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -220,12 +223,20 @@ class RequestIsolationTest {
         Coupon coupon = new Coupon();
         coupon.setId(999);
         coupon.setCompanyId(202);
+        coupon.setCategory(Category.FOOD);
         coupon.setTitle("New Coupon");
+        coupon.setDescription("Valid coupon for ownership testing");
+        coupon.setStart_date(LocalDate.of(2026, 10, 1));
+        coupon.setEnd_date(LocalDate.of(2027, 12, 31));
+        coupon.setAmount(5);
+        coupon.setPrice(100);
+        coupon.setImage("https://example.com/coupon.png");
 
         service.addCoupon(101, coupon);
 
         assertEquals(0, coupon.getId());
         assertEquals(101, coupon.getCompanyId());
+        assertFalse(coupon.isExpired());
 
         verify(couponRepository).save(coupon);
     }
