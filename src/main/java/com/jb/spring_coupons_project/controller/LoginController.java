@@ -25,6 +25,18 @@ public class LoginController {
             @RequestBody UserDetails userDetails
     ) throws LoginException {
 
+        if (userDetails == null ||
+                userDetails.getEmail() == null ||
+                userDetails.getEmail().isBlank() ||
+                userDetails.getPassword() == null ||
+                userDetails.getPassword().isBlank() ||
+                userDetails.getUserType() == null) {
+
+            throw new LoginException(
+                    "Email, password and user type are required"
+            );
+        }
+
         loginService.login(
                 userDetails.getEmail(),
                 userDetails.getPassword(),
