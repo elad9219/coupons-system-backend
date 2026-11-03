@@ -1,0 +1,6 @@
+# Only the Dockerfile and packaged application are needed at build time.
+**
+!Dockerfile
+!target/
+target/*
+!target/advanced_spring-0.0.1-SNAPSHOT.jar

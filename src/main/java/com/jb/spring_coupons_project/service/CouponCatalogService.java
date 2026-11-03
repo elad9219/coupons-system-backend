@@ -25,6 +25,7 @@ public class CouponCatalogService {
     private static final int MAX_PAGE_SIZE = 48;
 
     private final CouponRepository couponRepository;
+    private final CatalogReadiness catalogReadiness;
 
     public record CatalogPage(
             List<Coupon> content,
@@ -44,6 +45,8 @@ public class CouponCatalogService {
             Double maxPrice,
             String sort
     ) {
+        catalogReadiness.ensureReady();
+
         validateRequest(page, size, maxPrice);
 
         Sort sorting = resolveSort(sort);

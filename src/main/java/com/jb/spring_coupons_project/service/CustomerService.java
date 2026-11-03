@@ -164,6 +164,12 @@ public class CustomerService extends ClientService {
                         new ExistsException("Customer not found")
                 );
 
+        if (isProtectedDemoCustomer(existing)) {
+            throw new CustomerException(
+                    "This public demo customer account cannot be modified"
+            );
+        }
+
         if (incoming.getEmail() == null ||
                 incoming.getEmail().isBlank()) {
             throw new CustomerException("Email is required");

@@ -161,6 +161,12 @@ public class AdminService extends ClientService {
                         new ExistsException("Company not exists")
                 );
 
+        if (isProtectedDemoCompany(existing)) {
+            throw new CompanyException(
+                    "This public demo company account cannot be modified"
+            );
+        }
+
         if (incoming.getName() != null &&
                 !incoming.getName().equals(existing.getName())) {
 
@@ -210,12 +216,19 @@ public class AdminService extends ClientService {
 
     @Transactional(rollbackFor = Exception.class)
     public void updateCustomer(Customer incoming)
-            throws ExistsException, TokenException, CompanyException {
+            throws ExistsException, TokenException,
+            CompanyException, CustomerException {
 
         Customer existing = customerRepository.findById(incoming.getId())
                 .orElseThrow(() ->
                         new ExistsException("Customer not exists")
                 );
+
+        if (isProtectedDemoCustomer(existing)) {
+            throw new CustomerException(
+                    "This public demo customer account cannot be modified"
+            );
+        }
 
         if (incoming.getEmail() != null &&
                 !incoming.getEmail().equals(existing.getEmail())) {
@@ -256,9 +269,20 @@ public class AdminService extends ClientService {
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteCompany(int id)
-            throws ExistsException, TokenException {
+            throws ExistsException, TokenException, CompanyException {
 
-        if (!companyRepository.existsById(id)) {
+        if (publicDemo) {
+            Company company = companyRepository.findById(id)
+                    .orElseThrow(() ->
+                            new ExistsException("Company not exists")
+                    );
+
+            if (isProtectedDemoCompany(company)) {
+                throw new CompanyException(
+                        "This public demo company account cannot be deleted"
+                );
+            }
+        } else if (!companyRepository.existsById(id)) {
             throw new ExistsException("Company not exists");
         }
 
@@ -302,12 +326,21 @@ public class AdminService extends ClientService {
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteCustomer(int id)
-            throws ExistsException, TokenException {
+            throws ExistsException, TokenException, CustomerException {
 
-        if (!customerRepository.existsById(id)) {
-            throw new ExistsException(
-                    "Customer not exists"
-            );
+        if (publicDemo) {
+            Customer customer = customerRepository.findById(id)
+                    .orElseThrow(() ->
+                            new ExistsException("Customer not exists")
+                    );
+
+            if (isProtectedDemoCustomer(customer)) {
+                throw new CustomerException(
+                        "This public demo customer account cannot be deleted"
+                );
+            }
+        } else if (!customerRepository.existsById(id)) {
+            throw new ExistsException("Customer not exists");
         }
 
         customerRepository.deletePurchaseLinksByCustomerId(id);
