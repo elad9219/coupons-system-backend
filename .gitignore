@@ -3,3 +3,9 @@
 .idea/
 target/
 src/main/resources/application.properties
+
+# Local environment files
+.env
+.env.*
+!.env.example
+.envrc

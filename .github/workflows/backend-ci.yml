@@ -1,11 +1,7 @@
-
 name: Backend CI
 
 on:
   push:
-    branches:
-      - main
-      - upgrade/**
   pull_request:
     branches:
       - main
@@ -14,9 +10,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
+    name: Java tests, package and Docker image
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -44,9 +46,19 @@ jobs:
             exit 1
           fi
 
-          if jar tf "$JAR" | grep -q '^BOOT-INF/classes/application.properties$'; then
+          jar tf "$JAR" > target/jar-contents.txt
+
+          if grep -Fxq 'BOOT-INF/classes/application.properties' target/jar-contents.txt; then
             echo "ERROR: Private application.properties is packaged in the JAR."
             exit 1
           fi
 
           echo "PASS: Private application.properties is absent from the JAR."
+
+      - name: Build Docker image
+        run: docker build --tag coupons-backend:ci .
+
+      - name: Verify container user and Java runtime
+        run: |
+          docker run --rm --entrypoint sh coupons-backend:ci \
+            -c 'test "$(id -u)" -ne 0 && java -version'
