@@ -1,87 +1,87 @@
-# Coupons Management System
+# Coupon Management System — Backend
 
-A full-stack coupon marketplace built with Spring Boot and React. The application supports administrator, company, customer, and guest flows, with JWT authentication, role-based authorization, inventory validation, scheduled coupon expiration handling, and a responsive Material UI frontend.
+A Spring Boot API for a full-stack coupon marketplace. The application
+supports guest browsing and separate administrator, company, and customer
+flows.
 
-## Quick Links
+[![Backend CI](https://github.com/elad9219/coupons-system-backend/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/elad9219/coupons-system-backend/actions/workflows/backend-ci.yml)
 
-- **Live Demo:** [coupons-gamma.vercel.app](https://coupons-gamma.vercel.app/)
-- **API Documentation (Swagger):** [coupons.runmydocker-app.com/swagger-ui.html](https://coupons.runmydocker-app.com/swagger-ui.html)
-- **Backend Repository:** [github.com/elad9219/coupons-system-backend](https://github.com/elad9219/coupons-system-backend)
-- **Frontend Repository:** [github.com/elad9219/coupons-system-react](https://github.com/elad9219/coupons-system-react)
+| | Link |
+| --- | --- |
+| Live demo | [Open the application](https://coupons-gamma.vercel.app/) |
+| API documentation | [Swagger UI](https://coupons.runmydocker-app.com/swagger-ui.html) |
+| Frontend repository | [Coupon System Frontend](https://github.com/elad9219/coupons-system-react) |
 
-## Highlights
+> The demo backend may need time to wake up after inactivity. The frontend
+> displays a loading message while it waits for the API.
 
-- **Role-based access:** Separate capabilities for administrators, companies, customers, and guests.
-- **JWT authentication:** Spring Security and JWT protect authenticated application flows.
-- **Real-time purchase validation:** Validates stock and expiration before a coupon purchase is completed.
-- **Scheduled expiration handling:** A background job checks for expired coupons and updates the system automatically.
-- **Company inventory management:** Companies can create, update, delete, filter, and monitor their coupons.
-- **Customer marketplace:** Customers can browse, purchase, filter, and view previously purchased coupons.
-- **Responsive frontend:** React, TypeScript, Redux Toolkit, React Router, Material UI, and Axios interceptors.
-
-> **Database note:** The project was originally developed with MySQL and was later migrated to PostgreSQL for deployment.
-
-## Technologies
-
-### Backend
-
-- Java 11
-- Spring Boot 2.7.11
-- Spring Data JPA / Hibernate
-- PostgreSQL
-- Spring Security
-- JWT
-- Swagger 2
-- Lombok
-- Maven
-
-### Frontend
-
-- React 18
-- TypeScript
-- Redux Toolkit
-- React Router DOM v6
-- Material UI v5
-- Axios with interceptors
-
-### Deployment
-
-- Docker
-- Vercel frontend deployment
+## Application preview
 
 ## Screenshots
 
-### Home Page
+### Coupon catalog
 
-<img width="2512" height="1270" alt="Coupons home page" src="https://github.com/user-attachments/assets/6d8f561f-6869-4500-80fe-36e66184b5a2" />
+![Coupon catalog](https://raw.githubusercontent.com/elad9219/coupons-system-react/main/docs/screenshots/home.png)
 
-### Login Page
+### Demo sign-in
 
-<img width="2557" height="1271" alt="Coupons login page" src="https://github.com/user-attachments/assets/81ab870a-096c-4ffc-aec8-242cff011891" />
+![Sign-in page with demo account options](https://raw.githubusercontent.com/elad9219/coupons-system-react/main/docs/screenshots/login.png)
 
-### Get All Companies
+### Administrator: company management
 
-<img width="2553" height="1266" alt="Administrator company management" src="https://github.com/user-attachments/assets/4ef1f8b6-1288-412d-a003-ba826a6f0f1b" />
+![Administrator company management screen](https://raw.githubusercontent.com/elad9219/coupons-system-react/main/docs/screenshots/admin-companies.png)
 
-### Get a Customer by ID
+### Company: coupon management
 
-<img width="2545" height="1266" alt="Customer lookup" src="https://github.com/user-attachments/assets/e4adeb59-0f3c-4619-8d63-6c9c151ec33a" />
+![Company coupon management screen](https://raw.githubusercontent.com/elad9219/coupons-system-react/main/docs/screenshots/company-coupons.png)
 
-### Add a Company
+### Mobile view
 
-<img width="2550" height="1270" alt="Add company form" src="https://github.com/user-attachments/assets/73a88301-a3a6-44a5-b0b5-b931e1441ddb" />
+<img src="https://raw.githubusercontent.com/elad9219/coupons-system-react/main/docs/screenshots/mobile.png" alt="Coupon catalog on a mobile screen" width="360" />
 
-### Create a Coupon
+## Features
 
-<img width="2554" height="1271" alt="Create coupon form" src="https://github.com/user-attachments/assets/45cee5c1-ce9e-4850-a4c7-5c280d656525" />
+| Area | Capabilities |
+| --- | --- |
+| Authentication | JWT-based authentication and role checks |
+| Guest catalog | Server-side pagination, filtering, and sorting |
+| Customers | Registration, coupon purchases, and account management |
+| Companies | Coupon creation, updates, deletion, and inventory management |
+| Administrators | Company and customer management |
+| Data integrity | Input validation, purchase checks, and coupon expiration handling |
+| Demo environment | Curated sample data and an explicitly configured reset policy |
 
-### Purchase a Coupon
+The catalog returns a requested page of results instead of requiring the
+frontend to download the entire catalog.
 
-<img width="2559" height="1270" alt="Coupon purchase flow" src="https://github.com/user-attachments/assets/727fe491-e3e0-4b9c-9006-815e4e6d0b9a" />
+## Architecture
 
-## Demo Credentials
+```mermaid
+flowchart LR
+    U["Browser"] --> F["React frontend"]
+    F -->|"REST API"| B["Spring Boot backend"]
+    B --> D["PostgreSQL"]
+```
 
-These are public demo accounts intended only for testing the deployed application.
+The frontend is hosted on Vercel. The containerized backend is hosted on
+RunMyDocker and connects to PostgreSQL.
+
+## Technologies
+
+| Technology | Purpose |
+| --- | --- |
+| Java 21 | Backend language |
+| Spring Boot 4.1.2 | Application framework |
+| Spring Data JPA and Hibernate | Persistence |
+| PostgreSQL | Database |
+| JWT | Authentication tokens |
+| Spring Security Crypto | Password hashing |
+| Springdoc OpenAPI | API documentation |
+| Maven | Build and dependency management |
+| Docker | Container packaging |
+| GitHub Actions | Tests, packaging, and Docker validation |
+
+## Demo accounts
 
 | Role | Email | Password |
 | --- | --- | --- |
@@ -89,82 +89,126 @@ These are public demo accounts intended only for testing the deployed applicatio
 | Company | `sony@contact.com` | `1234` |
 | Customer | `kobi@gmail.com` | `1234` |
 
-## Local Setup
+These accounts are intended for the public demo. The demo database is
+recreated when the backend restarts, so changes and purchases are temporary.
 
-### Prerequisites
+The initial catalog contains sample companies, customers, coupons, and
+purchases. Seeding is skipped when the database already contains data.
 
-- Java 11
+## API documentation
+
+Open [Swagger UI](https://coupons.runmydocker-app.com/swagger-ui.html)
+to explore the API. The server may need time to start after inactivity.
+
+The public catalog endpoint is:
+
+```text
+GET /api/guest/catalog
+```
+
+It accepts pagination, category, maximum price, and sorting parameters.
+Authenticated operations use the appropriate user role.
+
+## Local development
+
+### Requirements
+
+- Java 21
 - Maven
-- Node.js and npm
 - PostgreSQL
-- Docker (optional)
+- Node.js 22 and npm for the frontend
 
-### Backend
+### Configure the database
+
+Clone the repository:
 
 ```bash
 git clone https://github.com/elad9219/coupons-system-backend.git
 cd coupons-system-backend
 ```
 
-Create your local `src/main/resources/application.properties` from the example file and use your own database values:
-
-```properties
-spring.datasource.url=jdbc:postgresql://<HOST>:<PORT>/<DATABASE>
-spring.datasource.username=<USERNAME>
-spring.datasource.password=<PASSWORD>
-```
-
-Then build and run:
+Copy the example configuration:
 
 ```bash
-mvn clean install
+cp src/main/resources/application.properties.example \
+   src/main/resources/application.properties
+```
+
+Create a local PostgreSQL database and update the datasource URL, username,
+and password in `application.properties`.
+
+For a new, dedicated local development database, set:
+
+```properties
+spring.jpa.hibernate.ddl-auto=update
+```
+
+The example file defaults to `validate`, which expects an existing schema.
+Keep credentials out of version control.
+
+### Configure the JWT signing key
+
+Generate a local key and make it available to the application:
+
+```bash
+export COUPONS_JWT_SECRET_BASE64="$(openssl rand -base64 32)"
+```
+
+Use a persistent, securely managed secret for an actual deployment. The
+generated value must not be committed to the repository.
+
+The default allowed origins include `http://localhost:3000`. If a different
+frontend origin is used, configure `COUPONS_ALLOWED_ORIGINS` with the
+appropriate explicit origin.
+
+### Run the backend
+
+```bash
 mvn spring-boot:run
 ```
 
-### Frontend
+The API is available at `http://localhost:8080`.
+
+To run the user interface locally, follow the
+[frontend setup instructions](https://github.com/elad9219/coupons-system-react).
+
+## Tests and build
 
 ```bash
-git clone https://github.com/elad9219/coupons-system-react.git
-cd coupons-system-react
-npm install
-npm start
+mvn clean verify
 ```
 
-## Project Structure
+The backend workflow runs tests, packages the application, checks that the
+private local configuration is excluded from the JAR, builds a Docker
+image, and checks the container's Java runtime and non-root user.
 
-### Backend
+## Public demo reset
+
+The hosted demo uses an isolated, disposable database. Its deployment
+configuration enables a schema reset on application startup:
 
 ```text
-src/main/java/com/jb/spring_coupons_project/
-├── advice/
-├── beans/
-├── clr/
-├── config/
-├── controller/
-├── dailyJob/
-├── repository/
-├── security/
-└── service/
+COUPONS_PUBLIC_DEMO=true
+COUPONS_DEMO_RESET_ON_STARTUP=true
+SPRING_JPA_HIBERNATE_DDL_AUTO=create
 ```
 
-### Frontend
+This reset deletes and recreates the database tables on startup. Use these
+settings only with a dedicated demo database that contains no data requiring
+preservation. They are not required for normal local development.
 
-```text
-src/
-├── Components/
-│   ├── admin/
-│   ├── company/
-│   ├── customer/
-│   ├── user/
-│   ├── mainLayout/
-│   └── routing/
-├── redux/
-└── util/
-```
+Database connection details, the JWT secret, and allowed origins are
+configured separately for the deployment.
 
-## Contact
+## Related repository
 
-- **Elad Tennenboim**
-- **GitHub:** [elad9219](https://github.com/elad9219)
-- **LinkedIn:** [linkedin.com/in/elad-tennenboim](https://www.linkedin.com/in/elad-tennenboim/)
-- **Email:** elad9219@gmail.com
+- [React frontend](https://github.com/elad9219/coupons-system-react)
+
+## Author
+
+**Elad Tennenboim**
+
+- [GitHub](https://github.com/elad9219)
+- [LinkedIn](https://www.linkedin.com/in/elad-tennenboim/)
+- [Portfolio](https://eladt-portfolio.vercel.app/)
+- [Email](mailto:elad9219@gmail.com)
